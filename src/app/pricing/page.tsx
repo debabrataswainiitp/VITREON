@@ -44,13 +44,13 @@ export default function PricingPage() {
     setLoadingId(itemId);
     
     try {
-      const isSub = itemType === "sub";
-      const endpoint = isSub ? "/api/razorpay/create-subscription" : "/api/razorpay/create-order";
+      // For this demo, route all payments as orders so the correct amount is charged
+      const endpoint = "/api/razorpay/create-order";
       
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isSub ? { planId: itemId, cycle } : { packId: itemId, amount })
+        body: JSON.stringify({ packId: itemId, amount })
       });
       
       const data = await res.json();
@@ -69,14 +69,12 @@ export default function PricingPage() {
         amount: data.amount,
         currency: "INR",
         name: "Vitreon",
-        description: isSub ? `${itemId} Subscription` : `${itemId} Credits`,
-        order_id: !isSub ? data.id : undefined,
-        subscription_id: isSub ? data.id : undefined,
+        order_id: data.id,
         handler: async function (response: any) {
-          const verifyRes = await fetch(isSub ? "/api/razorpay/verify-subscription" : "/api/razorpay/verify-order", {
+          const verifyRes = await fetch("/api/razorpay/verify-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response)
+            body: JSON.stringify({ ...response, packId: itemId, amount, isSub: itemType === "sub" })
           });
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
