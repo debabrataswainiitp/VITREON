@@ -10,9 +10,12 @@ import Link from "next/link";
 import gsap from "gsap";
 import { useAppStore } from "@/store/useAppStore";
 import { agentsData } from "@/components/chat/AgentRail";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { easings } from "@/lib/animations";
 
 export default function ProfilePage() {
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const reducedMotion = useAppStore(s => s.reducedMotion);
@@ -100,11 +103,11 @@ export default function ProfilePage() {
                     exit={{ opacity: 0, y: 10 }}
                     className="flex flex-col"
                   >
-                    <h1 className="font-heading text-3xl font-bold text-[var(--text-primary)] mb-1">Alex Chen</h1>
-                    <p className="text-[var(--text-muted)] mb-4">alex@example.com</p>
+                    <h1 className="font-heading text-3xl font-bold text-[var(--text-primary)] mb-1">{user?.fullName || "Guest"}</h1>
+                    <p className="text-[var(--text-muted)] mb-4">{user?.primaryEmailAddress?.emailAddress || "guest@example.com"}</p>
                     <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-[var(--text-muted)] mb-6">
                       <Hexagon className="w-4 h-4 text-emerald-400" />
-                      <span>Pro Member • Since Oct 2023</span>
+                      <span>Member • Since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'recently'}</span>
                     </div>
                     <div>
                       <GlassButton onClick={() => setIsEditing(true)}>Edit Profile</GlassButton>
@@ -119,8 +122,8 @@ export default function ProfilePage() {
                     className="flex flex-col gap-4 w-full"
                     onSubmit={(e) => { e.preventDefault(); setIsEditing(false); }}
                   >
-                    <GlassInput label="Full Name" defaultValue="Alex Chen" icon={<User className="w-4 h-4" />} />
-                    <GlassInput label="Email" defaultValue="alex@example.com" type="email" icon={<Mail className="w-4 h-4" />} />
+                    <GlassInput label="Full Name" defaultValue={user?.fullName || ""} icon={<User className="w-4 h-4" />} />
+                    <GlassInput label="Email" defaultValue={user?.primaryEmailAddress?.emailAddress || ""} type="email" icon={<Mail className="w-4 h-4" />} />
                     <div className="flex gap-3 mt-2">
                       <GlassButton variant="primary" type="submit">Save Changes</GlassButton>
                       <GlassButton variant="ghost" type="button" onClick={() => setIsEditing(false)}>Cancel</GlassButton>
@@ -191,7 +194,7 @@ export default function ProfilePage() {
         <div className="border-t border-[rgba(255,255,255,0.05)] pt-12">
           <h2 className="font-heading text-xl font-bold mb-4 text-red-400">Danger Zone</h2>
           <div className="flex flex-col sm:flex-row gap-4">
-            <GlassButton variant="ghost" className="text-[var(--text-muted)] hover:text-white">
+            <GlassButton variant="ghost" onClick={() => signOut()} className="text-[var(--text-muted)] hover:text-white">
               <LogOut className="w-4 h-4 mr-2" /> Log Out
             </GlassButton>
             <GlassButton variant="danger" onClick={() => setShowDeleteModal(true)}>
