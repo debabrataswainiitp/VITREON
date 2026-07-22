@@ -5,15 +5,13 @@ import { cn } from "@/lib/utils";
 import { agentsData } from "./AgentRail";
 import { AgentId } from "@/store/useAppStore";
 import { easings } from "@/lib/animations";
+import { UIMessage as AIMessage } from "ai";
 
-export interface Message {
-  id: string;
-  role: "user" | "agent";
-  content: string;
+export interface CustomMessage extends AIMessage {
   agentId?: AgentId;
 }
 
-export function ChatBubble({ message }: { message: Message }) {
+export function ChatBubble({ message }: { message: CustomMessage }) {
   const isUser = message.role === "user";
   
   return (
@@ -53,7 +51,9 @@ export function ChatBubble({ message }: { message: Message }) {
             </div>
           )}
           
-          <div className="whitespace-pre-wrap">{message.content}</div>
+          <div className="whitespace-pre-wrap">
+            {message.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')}
+          </div>
         </div>
       </div>
     </motion.div>
