@@ -8,6 +8,13 @@ import { agentsData } from "./AgentRail";
 import gsap from "gsap";
 import { cn } from "@/lib/utils";
 
+export const AI_MODELS = [
+  { id: 'openrouter/free', name: 'Auto (Best Free)' },
+  { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron Lightning' },
+  { id: 'google/gemma-4-26b-a4b-it:free', name: 'Gemma 4' },
+  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM' }
+];
+
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
   const [input, setInput] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -221,6 +228,7 @@ export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
             </AnimatePresence>
 
             <AgentDropdown />
+            <ModelDropdown />
           </div>
 
           <div className="flex items-center gap-1">
@@ -333,6 +341,74 @@ function AgentDropdown() {
                   <span className="text-xs text-[var(--text-muted)] opacity-80 leading-tight">
                     {agent.desc}
                   </span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ModelDropdown() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { activeModel, setActiveModel } = useAppStore();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currentModel = AI_MODELS.find(m => m.id === activeModel) || AI_MODELS[0];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] transition-colors border border-[rgba(255,255,255,0.05)] outline-none"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] text-[var(--text-muted)] font-medium">Model:</span>
+          <span className="text-[13px] font-semibold text-white">{currentModel.name}</span>
+        </div>
+        <ChevronDown className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-full left-0 mb-2 w-64 rounded-2xl bg-[rgba(25,26,35,0.95)] backdrop-blur-2xl border border-[rgba(255,255,255,0.1)] shadow-2xl overflow-hidden z-50 flex flex-col p-1.5"
+          >
+            {AI_MODELS.map((model) => {
+              const isActive = model.id === activeModel;
+              return (
+                <button
+                  key={model.id}
+                  onClick={() => { setActiveModel(model.id); setIsOpen(false); }}
+                  className={cn(
+                    "flex flex-col items-start px-3 py-2.5 rounded-xl transition-colors outline-none text-left w-full",
+                    isActive ? "bg-[rgba(255,255,255,0.1)]" : "hover:bg-[rgba(255,255,255,0.05)]"
+                  )}
+                >
+                  <div className="flex items-center justify-between w-full mb-0.5">
+                    <span className={cn("text-sm font-semibold", isActive ? "text-white" : "text-[var(--text-primary)]")}>
+                      {model.name}
+                    </span>
+                    {isActive && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    )}
+                  </div>
                 </button>
               );
             })}
