@@ -31,11 +31,19 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
+  if (pathname === "/chat" || pathname === "/pricing") {
+    return null;
+  }
+
+  const baseNavLinks = [
     { label: "Agents", href: "/#agents" },
     { label: "How it works", href: "/#how-it-works" },
     { label: "Pricing", href: "/pricing" },
   ];
+
+  const navLinks = isSignedIn 
+    ? [...baseNavLinks, { label: "Dashboard", href: "/dashboard" }, { label: "Chat", href: "/chat" }]
+    : baseNavLinks;
 
   return (
     <>
@@ -121,10 +129,10 @@ export function Navbar() {
             <div className="flex items-center gap-4">
               {!isSignedIn ? (
                 <>
-                  <SignInButton mode="modal" asChild>
+                  <SignInButton mode="modal">
                     <button className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer">Sign In</button>
                   </SignInButton>
-                  <SignUpButton mode="modal" asChild>
+                  <SignUpButton mode="modal">
                     <GlassButton variant="primary" className="py-1.5 px-4 text-sm cursor-pointer">Get Started</GlassButton>
                   </SignUpButton>
                 </>
@@ -188,10 +196,10 @@ export function Navbar() {
               >
                 {!isSignedIn ? (
                   <>
-                    <SignInButton mode="modal" asChild>
+                    <SignInButton mode="modal">
                       <GlassButton className="w-full justify-center cursor-pointer" onClick={() => setMobileMenuOpen(false)}>Sign In</GlassButton>
                     </SignInButton>
-                    <SignUpButton mode="modal" asChild>
+                    <SignUpButton mode="modal">
                       <GlassButton variant="primary" className="w-full justify-center cursor-pointer" onClick={() => setMobileMenuOpen(false)}>Get Started</GlassButton>
                     </SignUpButton>
                   </>
