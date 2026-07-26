@@ -18,6 +18,9 @@ interface AppState {
   activeAgent: AgentId;
   setActiveAgent: (agent: AgentId) => void;
   
+  activeModel: string;
+  setActiveModel: (model: string) => void;
+  
   reducedMotion: boolean;
   setReducedMotion: (val: boolean) => void;
 
@@ -31,6 +34,9 @@ export const useAppStore = create<AppState>((set) => ({
   
   activeAgent: 'prism',
   setActiveAgent: (activeAgent) => set({ activeAgent }),
+  
+  activeModel: 'nvidia/nemotron-3.5-lightning:free',
+  setActiveModel: (activeModel) => set({ activeModel }),
   
   reducedMotion: false,
   setReducedMotion: (reducedMotion) => set({ reducedMotion }),
