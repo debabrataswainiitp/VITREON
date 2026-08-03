@@ -79,6 +79,7 @@ export function HowItWorks() {
                 fill="none" 
                 stroke="rgba(255,255,255,0.2)" 
                 strokeWidth="2" 
+                suppressHydrationWarning
               />
             </svg>
           </div>

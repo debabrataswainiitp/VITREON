@@ -88,8 +88,8 @@ export default function PricingPage() {
           }
         },
         prefill: {
-          name: "Alex Chen",
-          email: "alex@example.com",
+          name: "Dev Raj",
+          email: "dev@example.com",
         },
         theme: { color: "#7C5CFC" },
         modal: {

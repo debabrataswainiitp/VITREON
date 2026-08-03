@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { GlassButton } from "../glass/GlassButton";
 import { Hexagon, Menu, X } from "lucide-react";
+import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("");
+  const { isSignedIn } = useAuth();
 
   // Sync activeTab with pathname on mount (for /pricing)
   useEffect(() => {
@@ -49,7 +51,7 @@ export function Navbar() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">
-              <Hexagon className="w-8 h-8 text-[var(--text-primary)] transition-transform duration-500 group-hover:rotate-90" />
+              <Hexagon suppressHydrationWarning className="w-8 h-8 text-[var(--text-primary)] transition-transform duration-500 group-hover:rotate-90" />
               <div className="absolute inset-0 bg-gradient-accent blur-md opacity-0 group-hover:opacity-40 transition-opacity duration-500" />
             </div>
             <span className="font-heading font-bold text-xl tracking-tight">Vitreon</span>
@@ -82,12 +84,20 @@ export function Navbar() {
               })}
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/login">
-                <span className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">Sign In</span>
-              </Link>
-              <Link href="/signup">
-                <GlassButton variant="primary" className="py-1.5 px-4 text-sm">Get Started</GlassButton>
-              </Link>
+              {!isSignedIn ? (
+                <>
+                  <SignInButton mode="modal">
+                    <button className="text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">Sign In</button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <div>
+                      <GlassButton variant="primary" className="py-1.5 px-4 text-sm">Get Started</GlassButton>
+                    </div>
+                  </SignUpButton>
+                </>
+              ) : (
+                <UserButton />
+              )}
             </div>
           </nav>
 
@@ -96,7 +106,7 @@ export function Navbar() {
             className="md:hidden p-2 text-[var(--text-primary)]"
             onClick={() => setMobileMenuOpen(true)}
           >
-            <Menu className="w-6 h-6" />
+            <Menu suppressHydrationWarning className="w-6 h-6" />
           </button>
         </div>
       </motion.header>
@@ -115,7 +125,7 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.1)] rounded-full transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X suppressHydrationWarning className="w-6 h-6" />
               </button>
             </div>
             
@@ -143,12 +153,25 @@ export function Navbar() {
                 transition={{ delay: 0.3 }}
                 className="mt-8 flex flex-col gap-4"
               >
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <GlassButton className="w-full justify-center">Sign In</GlassButton>
-                </Link>
-                <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <GlassButton variant="primary" className="w-full justify-center">Get Started</GlassButton>
-                </Link>
+                {!isSignedIn ? (
+                  <>
+                    <SignInButton mode="modal">
+                      <div onClick={() => setMobileMenuOpen(false)}>
+                        <GlassButton className="w-full justify-center">Sign In</GlassButton>
+                      </div>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <div onClick={() => setMobileMenuOpen(false)}>
+                        <GlassButton variant="primary" className="w-full justify-center">Get Started</GlassButton>
+                      </div>
+                    </SignUpButton>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center p-4 bg-[rgba(255,255,255,0.05)] rounded-2xl border border-[rgba(255,255,255,0.1)]">
+                    <UserButton />
+                    <span className="ml-3 text-[var(--text-primary)] font-medium">Your Account</span>
+                  </div>
+                )}
               </motion.div>
             </nav>
           </motion.div>

@@ -13,7 +13,7 @@
   --color-orb-pink: #FF6FA5;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-rajdhani), ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -141,4 +141,11 @@ body {
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Hide Clerk Development Badge */
+div[style*="z-index: 99999"],
+.cl-internal-b3al4t,
+.cl-internal-1dauvpw {
+  display: none !important;
 }

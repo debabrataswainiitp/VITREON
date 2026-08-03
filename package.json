@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.6.4",
+    "@clerk/themes": "^2.4.57",
+    "@prisma/client": "^6",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "gsap": "^3.15.0",
@@ -27,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "prisma": "^6",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

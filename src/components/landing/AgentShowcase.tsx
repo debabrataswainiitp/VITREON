@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { GlassPanel } from "../glass/GlassPanel";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -17,62 +17,39 @@ const agents = [
 ];
 
 function AgentCard({ agent, index }: { agent: typeof agents[0], index: number }) {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const reducedMotion = useAppStore((state) => state.reducedMotion);
-
-  const mouseXSpring = useSpring(x, { stiffness: 300, damping: 20 });
-  const mouseYSpring = useSpring(y, { stiffness: 300, damping: 20 });
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["6deg", "-6deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-6deg", "6deg"]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (reducedMotion) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
-
   return (
-    <motion.div
-      style={{
-        rotateX: reducedMotion ? 0 : rotateX,
-        rotateY: reducedMotion ? 0 : rotateY,
-        transformStyle: "preserve-3d",
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="agent-card-item opacity-0 translate-y-8 h-full"
-    >
-      <GlassPanel interactive className="p-6 flex flex-col h-full h-[220px]">
-        <div 
-          className="mb-4"
-          style={{ transform: reducedMotion ? 'none' : 'translateZ(30px)' }}
-        >
-          <div className="relative w-12 h-12 flex items-center justify-center">
-            {/* Glowing Orb */}
-            <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${agent.color} opacity-40 blur-md`} />
-            <div className={`relative w-8 h-8 rounded-full bg-gradient-to-br ${agent.color}`} />
+    <div className="agent-card-item opacity-0 translate-y-8 h-full">
+      <motion.div
+        whileHover={{ y: -10, scale: 1.03 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className="h-full group relative"
+      >
+        {/* Outer Glow that appears on hover */}
+        <div className={`absolute -inset-0.5 rounded-[24px] bg-gradient-to-br ${agent.color} opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-500`} />
+        
+        <GlassPanel interactive className="p-6 flex flex-col h-full h-[220px] relative z-10 overflow-hidden">
+          {/* Inner ambient glow on hover */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${agent.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+          
+          <div className="mb-4 relative z-10">
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              {/* Orb */}
+              <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${agent.color} opacity-40 blur-md group-hover:opacity-80 group-hover:scale-110 transition-all duration-500`} />
+              <div className={`relative w-8 h-8 rounded-full bg-gradient-to-br ${agent.color} group-hover:scale-110 transition-transform duration-500`} />
+            </div>
           </div>
-        </div>
-        <div style={{ transform: reducedMotion ? 'none' : 'translateZ(20px)' }}>
-          <h3 className="font-heading font-semibold text-xl text-[var(--text-primary)] mb-2">{agent.name}</h3>
-          <p className="text-sm text-[var(--text-muted)] leading-relaxed">{agent.role}</p>
-        </div>
-      </GlassPanel>
-    </motion.div>
+          
+          <div className="relative z-10">
+            <h3 className="font-heading font-semibold text-xl text-[var(--text-primary)] mb-2 group-hover:text-white transition-colors duration-300">
+              {agent.name}
+            </h3>
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed group-hover:text-white/80 transition-colors duration-300">
+              {agent.role}
+            </p>
+          </div>
+        </GlassPanel>
+      </motion.div>
+    </div>
   );
 }
 

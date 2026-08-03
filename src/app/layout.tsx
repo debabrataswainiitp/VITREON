@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { Rajdhani, Inter } from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const rajdhani = Rajdhani({
+  weight: "700",
+  variable: "--font-rajdhani",
   subsets: ["latin"],
 });
 
@@ -18,8 +21,10 @@ export const metadata: Metadata = {
   description: "A multi-agent AI assistant platform.",
 };
 
+import { StarryBackground } from "@/components/layout/StarryBackground";
 import { BackgroundOrbs } from "@/components/glass/BackgroundOrbs";
 import { CustomCursor } from "@/components/layout/CustomCursor";
+import { InitialLoader } from "@/components/layout/InitialLoader";
 
 export default function RootLayout({
   children,
@@ -27,17 +32,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={clsx(spaceGrotesk.variable, inter.variable, "antialiased cursor-none")}
-      suppressHydrationWarning
+    <ClerkProvider
+      appearance={
+        {
+          baseTheme: dark,
+          layout: {
+            socialButtonsVariant: "iconButton",
+            socialButtonsPlacement: "top",
+          },
+          variables: {
+            fontFamily: "var(--font-inter), sans-serif",
+            fontFamilyButtons: "var(--font-rajdhani), sans-serif",
+          },
+          elements: {
+            card: "!bg-white/60 backdrop-blur-md",
+            input: "!bg-white/30 !text-gray-200 !backdrop-blur-xl !border-none",
+            anchorButton: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
+            formButtonPrimary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
+            formButtonSecondary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
+            formButtonReset: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
+            socialButtonsPlacement: "top",
+          }
+        } as any
+      }
     >
-      <body className="min-h-screen flex flex-col font-sans relative text-[15px] sm:text-[16px] leading-[1.6]">
-        <div className="bg-noise"></div>
-        <BackgroundOrbs />
-        <CustomCursor />
-        {children}
-      </body>
-    </html>
+      <html
+        lang="en"
+        className={clsx(rajdhani.variable, inter.variable, "antialiased cursor-none")}
+        suppressHydrationWarning
+      >
+        <body suppressHydrationWarning className="min-h-screen flex flex-col font-sans relative text-[15px] sm:text-[16px] leading-[1.6]">
+          <InitialLoader />
+          <div className="bg-noise pointer-events-none opacity-50 z-[-1]"></div>
+          <BackgroundOrbs />
+          <StarryBackground />
+          <CustomCursor />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
