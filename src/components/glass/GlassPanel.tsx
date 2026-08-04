@@ -47,7 +47,7 @@ export function GlassPanel({ className, strong = false, interactive = false, chi
       )}
       style={interactive ? {
         // We inject the CSS variables for the dynamic highlight on hover if interactive
-        background: `radial-gradient(800px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255,255,255,0.06), transparent 40%), var(--glass-bg${strong ? '-strong' : ''})`
+        background: `radial-gradient(800px circle at var(--mouse-x, 0) var(--mouse-y, 0), var(--glass-hover), transparent 40%), var(--glass-bg${strong ? '-strong' : ''})`
       } : {}}
       {...props}
     >

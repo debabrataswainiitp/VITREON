@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 class Star {
   x: number;
@@ -21,8 +21,9 @@ class Star {
     this.hue = Math.random() * 360;
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = `hsla(${this.hue}, 80%, 70%, 0.8)`;
+  draw(ctx: CanvasRenderingContext2D, isLight: boolean = false) {
+    const lightness = isLight ? 40 : 70;
+    ctx.fillStyle = `hsla(${this.hue}, 80%, ${lightness}%, 0.8)`;
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
     ctx.closePath();
@@ -132,20 +133,27 @@ export function StarryBackground() {
     };
 
     const animate = (time: number) => {
-      ctx.fillStyle = "rgba(5, 5, 8, 0.2)";
+      const isLight = document.documentElement.classList.contains('light-mode');
+      
+      if (isLight) {
+        ctx.fillStyle = "rgba(244, 245, 250, 1)"; // Crisp clear
+      } else {
+        ctx.fillStyle = "rgba(10, 11, 16, 1)"; // Crisp clear (matches #0A0B10)
+      }
+      
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
       for (let i = 0; i < particleArray.length; i++) {
         particleArray[i].update(mouse, time);
-        particleArray[i].draw(ctx);
+        particleArray[i].draw(ctx, isLight);
       }
       
-      connect(ctx, particleArray);
+      connect(ctx, particleArray, isLight);
 
       animationFrameId = requestAnimationFrame(animate);
     };
     
-    const connect = (ctx: CanvasRenderingContext2D, stars: Star[]) => {
+    const connect = (ctx: CanvasRenderingContext2D, stars: Star[], isLight: boolean) => {
       for (let a = 0; a < stars.length; a++) {
         for (let b = a; b < stars.length; b++) {
           let dx = stars[a].x - stars[b].x;
@@ -154,8 +162,14 @@ export function StarryBackground() {
           
           if (distance < 6000) { // Increased connection distance
             let opacityValue = 1 - (distance / 6000);
-            ctx.strokeStyle = `rgba(0, 255, 255, ${opacityValue * 0.5})`; // Neon cyan glow
-            ctx.lineWidth = 1.5;
+            
+            // Calculate a mixed hue based on both connected dots for a multi-color effect
+            const mixedHue = (stars[a].hue + stars[b].hue) / 2;
+            const lightness = isLight ? 50 : 70;
+            
+            ctx.strokeStyle = `hsla(${mixedHue}, 80%, ${lightness}%, ${opacityValue * 0.7})`;
+            ctx.lineWidth = 1.2;
+            
             ctx.beginPath();
             ctx.moveTo(stars[a].x, stars[a].y);
             ctx.lineTo(stars[b].x, stars[b].y);
@@ -163,7 +177,7 @@ export function StarryBackground() {
             
             // Add extra glow for very close connections
             if (distance < 2000) {
-                ctx.strokeStyle = `rgba(167, 139, 250, ${opacityValue * 0.8})`; // Purple inner neon
+                ctx.strokeStyle = `hsla(${mixedHue + 30}, 90%, ${lightness + 10}%, ${opacityValue * 0.9})`;
                 ctx.lineWidth = 0.5;
                 ctx.stroke();
             }
@@ -189,17 +203,36 @@ export function StarryBackground() {
     };
   }, []);
 
+  const [isLight, setIsLight] = useState(false);
+  
+  useEffect(() => {
+    // We need an effect to track light mode for the React render tree (the overlay opacity)
+    const checkTheme = () => {
+      setIsLight(document.documentElement.classList.contains('light-mode'));
+    };
+    checkTheme();
+    
+    // Set up a mutation observer to watch for class changes on HTML
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#050508]">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden transition-colors duration-500" style={{ backgroundColor: "var(--bg-base)" }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
       />
-      {/* Dark overlay to make text pop, REMOVED blur to keep stars high-res */}
-      <div className="absolute inset-0 bg-black/50" />
+      {/* Dark overlay to make text pop - dynamically using CSS vars to maintain contrast but not wash out */}
+      <div 
+        className="absolute inset-0 transition-opacity duration-500 bg-black" 
+        style={{ opacity: isLight ? 0.02 : 0.5 }} 
+      />
       
       {/* Subtle vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(5,5,8,0.9)_100%)]" />
+      <div className="absolute inset-0 transition-all duration-500" style={{ background: "radial-gradient(circle at center, transparent 0%, var(--bg-base) 100%)", opacity: 0.8 }} />
     </div>
   );
 }

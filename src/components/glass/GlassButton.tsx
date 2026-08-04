@@ -26,9 +26,12 @@ export function GlassButton({
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!reducedMotion && btnRef.current) {
       // Light sweep animation
+      const isLight = document.documentElement.classList.contains('light-mode');
       const sweep = document.createElement("div");
       sweep.className = "absolute inset-0 z-0 pointer-events-none opacity-50";
-      sweep.style.background = "linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent)";
+      sweep.style.background = isLight 
+        ? "linear-gradient(120deg, transparent, rgba(0,0,0,0.15), transparent)"
+        : "linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent)";
       sweep.style.width = "200%";
       sweep.style.transform = "translateX(-100%) skewX(-15deg)";
       
@@ -51,9 +54,9 @@ export function GlassButton({
 
   const variantStyles = {
     primary: "bg-gradient-accent text-white border-transparent",
-    secondary: "glass-panel text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.1)]",
+    secondary: "glass-panel text-[var(--text-primary)] hover:bg-[var(--glass-hover)]",
     danger: "bg-[rgba(239,68,68,0.1)] text-red-400 border-[rgba(239,68,68,0.2)] hover:bg-[rgba(239,68,68,0.2)]",
-    ghost: "bg-transparent border-transparent hover:bg-[rgba(255,255,255,0.05)]",
+    ghost: "bg-transparent border-transparent hover:bg-[var(--glass-hover)]",
   };
 
   return (
