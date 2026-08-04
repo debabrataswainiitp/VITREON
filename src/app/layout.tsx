@@ -25,6 +25,7 @@ import { StarryBackground } from "@/components/layout/StarryBackground";
 import { BackgroundOrbs } from "@/components/glass/BackgroundOrbs";
 import { CustomCursor } from "@/components/layout/CustomCursor";
 import { InitialLoader } from "@/components/layout/InitialLoader";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export default function RootLayout({
   children,
@@ -51,7 +52,6 @@ export default function RootLayout({
             formButtonPrimary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
             formButtonSecondary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
             formButtonReset: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
-            socialButtonsPlacement: "top",
           }
         } as any
       }
@@ -67,6 +67,7 @@ export default function RootLayout({
           <BackgroundOrbs />
           <StarryBackground />
           <CustomCursor />
+          <ThemeToggle />
           {children}
         </body>
       </html>

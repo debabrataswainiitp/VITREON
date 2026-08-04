@@ -120,8 +120,8 @@ export default function HistoryPage() {
           </AnimatePresence>
           
           {filteredHistory.length === 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-[var(--text-muted)]">
-              <Hexagon className="w-12 h-12 mx-auto mb-4 opacity-20" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-[var(--text-muted)] flex flex-col items-center">
+              <img src="/logo.png" alt="No History" className="w-12 h-12 mb-4 opacity-30 grayscale" />
               <p>No conversations found.</p>
             </motion.div>
           )}

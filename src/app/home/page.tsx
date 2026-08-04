@@ -176,12 +176,10 @@ export default function HomePage() {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2 group mr-2">
-              <div className="relative">
-                <Hexagon className="w-7 h-7 text-[var(--text-primary)] animate-[spin_20s_linear_infinite]" />
-                <div className="absolute inset-0 bg-gradient-accent blur-md opacity-20 transition-opacity duration-500" />
+            <div className="flex items-center group mr-2">
+              <div className="relative h-8 flex items-center">
+                <img src="/logo-banner.png" alt="Vitreon AI" className="h-full w-auto object-contain" />
               </div>
-              <span className="font-heading font-bold text-lg tracking-tight hidden sm:block">Vitreon</span>
             </div>
           </div>
           
@@ -203,9 +201,9 @@ export default function HomePage() {
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 pb-0 flex flex-col">
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full pb-10">
-              <div className="relative mb-8 group cursor-default">
-                <Hexagon className="w-16 h-16 text-[var(--text-muted)] animate-[spin_20s_linear_infinite]" />
-                <div className="absolute inset-0 bg-gradient-accent blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
+              <div className="relative mb-8 group cursor-default flex justify-center">
+                <img src="/logo.png" alt="Vitreon Logo" className="w-16 h-16 object-contain opacity-60 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                <div className="absolute inset-0 bg-gradient-accent blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000 pointer-events-none" />
               </div>
               <h2 className="text-2xl font-heading font-semibold mb-2">How can we help today?</h2>
               <p className="text-[var(--text-muted)] mb-10 text-center">Prism will route your request to the most capable agent.</p>
