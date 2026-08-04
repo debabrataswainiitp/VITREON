@@ -61,16 +61,17 @@ export function LandingHero() {
         {/* Animated tag */}
         <div
           ref={tagRef}
-          className="px-5 py-2 rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.03)] backdrop-blur-xl mb-10 inline-flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.05)]"
+          className="px-5 py-2 rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.03)] backdrop-blur-xl mb-10 inline-flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.05)] dark:border-[rgba(255,255,255,0.2)] dark:bg-[rgba(255,255,255,0.03)]"
+          style={{ borderColor: "var(--glass-border)", background: "var(--glass-bg)" }}
         >
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
-          <span className="text-sm font-semibold tracking-widest uppercase text-white/90">Vitreon Next-Gen Beta</span>
+          <span className="text-sm font-semibold tracking-widest uppercase text-[var(--text-primary)]">Vitreon Next-Gen Beta</span>
         </div>
 
         {/* Headline */}
         <h1 
           ref={headlineRef}
-          className="font-heading text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white mb-8 leading-[1.1]"
+          className="font-heading text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter text-[var(--text-primary)] mb-8 leading-[1.1]"
         >
           Intelligence,
           <br />

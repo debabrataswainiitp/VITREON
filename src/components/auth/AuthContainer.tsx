@@ -69,8 +69,7 @@ export function AuthContainer({ initialMode = "login" }: { initialMode?: "login"
       
       {/* Absolute Logo at top */}
       <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-        <Hexagon className="w-10 h-10 text-[var(--text-primary)]" />
-        <span className="font-heading font-bold tracking-widest text-sm text-[var(--text-muted)]">VITREON</span>
+        <img src="/logo-banner.png" alt="Vitreon AI" className="h-12 w-auto object-contain" />
       </div>
 
       <motion.div

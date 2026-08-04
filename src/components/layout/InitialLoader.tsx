@@ -59,9 +59,8 @@ export function InitialLoader() {
             transition={{ duration: 0.8 }}
             className="relative mb-12"
           >
-            <div className="absolute inset-0 bg-cyan-400 blur-xl opacity-40 animate-pulse rounded-full" />
-            <Hexagon className="w-20 h-20 text-cyan-400 relative z-10" />
-            <Hexagon className="w-20 h-20 text-white/20 absolute inset-0 animate-[spin_4s_linear_infinite]" />
+            <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-30 animate-pulse rounded-full" />
+            <img src="/logo.png" alt="Vitreon Logo" className="w-20 h-20 relative z-10 object-contain drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
           </motion.div>
 
           {/* Primary Text */}

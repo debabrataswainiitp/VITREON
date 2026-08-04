@@ -7,8 +7,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
         <div className="flex flex-col gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <Hexagon className="w-6 h-6 text-white" />
-            <span className="font-heading font-bold text-lg tracking-tight">Vitreon</span>
+            <img src="/logo-banner.png" alt="Vitreon AI" className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity" />
           </Link>
           <p className="text-[var(--text-muted)] text-sm max-w-xs">
             Clarity, orchestrated. The liquid glass multi-agent platform.
