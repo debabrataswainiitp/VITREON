@@ -119,7 +119,7 @@ export default function PricingPage() {
       <div className="max-w-5xl mx-auto flex flex-col items-center">
         
         <div className="w-full mb-12 flex items-center justify-center relative">
-          <Link href="/" className="absolute left-0 inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white transition-colors">
+          <Link href="/" className="absolute left-0 inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back</span>
           </Link>
@@ -130,26 +130,30 @@ export default function PricingPage() {
         </div>
 
         {/* Mode Switcher */}
-        <GlassPanel className="p-1 mb-10 flex w-full max-w-sm rounded-2xl relative">
+        <div 
+          className="p-1 mb-10 flex w-full max-w-sm rounded-2xl relative border"
+          style={{ background: "var(--glass-bg)", borderColor: "var(--glass-border)", boxShadow: "inset 0 2px 10px rgba(0,0,0,0.05)" }}
+        >
           <button 
             onClick={() => setMode("subscription")}
-            className={cn("flex-1 py-3 text-sm font-semibold transition-colors z-10", mode === "subscription" ? "text-white" : "text-[var(--text-muted)] hover:text-white")}
+            className={cn("flex-1 py-3 text-sm font-semibold transition-colors z-10", mode === "subscription" ? "text-[var(--knob-text)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]")}
           >
             Subscription
           </button>
           <button 
             onClick={() => setMode("credits")}
-            className={cn("flex-1 py-3 text-sm font-semibold transition-colors z-10", mode === "credits" ? "text-white" : "text-[var(--text-muted)] hover:text-white")}
+            className={cn("flex-1 py-3 text-sm font-semibold transition-colors z-10", mode === "credits" ? "text-[var(--knob-text)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]")}
           >
             Instant Credits
           </button>
           <motion.div 
             layoutId="pricing-mode"
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] rounded-xl z-0"
+            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl z-0 shadow-md border"
+            style={{ background: "var(--glass-knob)", borderColor: "var(--glass-border)" }}
             animate={{ left: mode === "subscription" ? "4px" : "calc(50%)" }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           />
-        </GlassPanel>
+        </div>
 
         {/* Content Area */}
         <div className="w-full min-h-[500px]">
@@ -167,19 +171,21 @@ export default function PricingPage() {
               >
                 {/* Billing Cycle Toggle */}
                 <div className="flex items-center gap-3 mb-10 relative">
-                  <span className={cn("text-sm transition-colors", cycle === "monthly" ? "text-white" : "text-[var(--text-muted)]")}>Monthly</span>
+                  <span className={cn("text-sm transition-colors", cycle === "monthly" ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]")}>Monthly</span>
                   <button 
                     onClick={() => setCycle(c => c === "monthly" ? "yearly" : "monthly")}
-                    className="w-12 h-6 rounded-full bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] relative p-1 flex items-center transition-colors"
+                    className="w-12 h-6 rounded-full relative p-1 flex items-center transition-colors border"
+                    style={{ background: "var(--glass-bg-strong)", borderColor: "var(--glass-border)", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)" }}
                   >
                     <motion.div 
                       layout
-                      className="w-4 h-4 rounded-full bg-white shadow-sm"
+                      className="w-4 h-4 rounded-full shadow-md border"
+                      style={{ background: "var(--glass-knob)" }}
                       animate={{ x: cycle === "monthly" ? 0 : 22 }}
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     />
                   </button>
-                  <span className={cn("text-sm transition-colors", cycle === "yearly" ? "text-white" : "text-[var(--text-muted)]")}>Yearly</span>
+                  <span className={cn("text-sm transition-colors", cycle === "yearly" ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]")}>Yearly</span>
                   
                   <AnimatePresence>
                     {cycle === "yearly" && (
@@ -218,7 +224,7 @@ export default function PricingPage() {
                         <span className="text-[var(--text-muted)] mb-1">/{cycle === "monthly" ? "mo" : "yr"}</span>
                       </div>
                       
-                      <p className="text-sm text-[var(--text-muted)] mb-auto leading-relaxed border-t border-[rgba(255,255,255,0.05)] pt-6">
+                      <p className="text-sm text-[var(--text-muted)] mb-auto leading-relaxed border-t border-[var(--glass-border)] pt-6">
                         {plan.desc}
                       </p>
                       
@@ -229,7 +235,7 @@ export default function PricingPage() {
                         disabled={loadingId !== null}
                       >
                         {loadingId === plan.id ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin opacity-50" />
                         ) : successId === plan.id ? (
                           <Check className="w-5 h-5" />
                         ) : (
@@ -270,8 +276,8 @@ export default function PricingPage() {
                         </div>
                       )}
                       
-                      <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.1)] flex items-center justify-center mb-6 mt-4">
-                        <pack.icon className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] flex items-center justify-center mb-6 mt-4">
+                        <pack.icon className="w-6 h-6 text-[var(--text-primary)]" />
                       </div>
                       
                       <h3 className="font-heading text-2xl font-bold mb-1">{pack.name}</h3>
@@ -290,7 +296,7 @@ export default function PricingPage() {
                         disabled={loadingId !== null}
                       >
                         {loadingId === pack.id ? (
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin opacity-50" />
                         ) : successId === pack.id ? (
                           <Check className="w-5 h-5" />
                         ) : (
@@ -343,7 +349,7 @@ function FAQItem({ question, answer }: { question: string, answer: string }) {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-5 pt-0 text-[var(--text-muted)] text-sm leading-relaxed border-t border-[rgba(255,255,255,0.05)] mt-1">
+            <div className="p-5 pt-0 text-[var(--text-muted)] text-sm leading-relaxed border-t border-[var(--glass-border)] mt-1">
               {answer}
             </div>
           </motion.div>

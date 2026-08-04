@@ -35,22 +35,30 @@
   --glass-radius-lg: 28px;
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.08);
   --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0) 40%);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass-knob: #ffffff;
+  --knob-text: #0A0B10;
+  --glass-nav: rgba(255, 255, 255, 0.05);
 }
 
 .light-mode {
-  --bg-base: #F4F5FA;
-  --bg-gradient-end: #E4E5EB; /* slightly darker end for gradient */
+  --bg-base: #E4E7EE; /* Deeper cool gray for contrast */
+  --bg-gradient-end: #D3D7E0;
   --text-primary: #1A1B23;
-  --text-muted: #6B6E7D;
+  --text-muted: #5A5D6B;
   
   --orb-opacity: 0.15;
   
-  /* Slightly adjusted glass tokens for light mode */
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-bg-strong: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.4);
-  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 40%);
+  /* Glass tokens optimized for floating cards */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-bg-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(0, 0, 0, 0.12); /* 12% black */
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+  --glass-highlight: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(255,255,255,0) 40%);
+  --glass-hover: rgba(0, 0, 0, 0.04);
+  --glass-knob: #1A1B23;
+  --knob-text: #ffffff;
+  --glass-nav: rgba(255, 255, 255, 0.15);
 }
 
 body {
@@ -105,6 +113,20 @@ body {
 
 .bg-gradient-accent {
   background: linear-gradient(to right, #7C5CFC, #4FD8E8, #FF6FA5);
+}
+
+.border-gradient-accent::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(to right, #7C5CFC, #4FD8E8, #FF6FA5);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 /* Background noise */
