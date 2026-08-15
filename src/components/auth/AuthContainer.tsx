@@ -59,7 +59,7 @@ export function AuthContainer({ initialMode = "login" }: { initialMode?: "login"
         onStart: () => setIsSuccess(true)
       })
       .add(() => {
-        setTimeout(() => router.push("/home"), 400);
+        setTimeout(() => router.push("/"), 400);
       }, "+=0.2");
     }
   };

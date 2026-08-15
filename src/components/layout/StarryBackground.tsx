@@ -34,21 +34,21 @@ class Star {
     // Slowly shift hue for the color changing effect
     this.hue = (this.hue + 0.5) % 360;
 
-    let dx = mouse.x - this.x;
-    let dy = mouse.y - this.y;
-    let distance = Math.sqrt(dx * dx + dy * dy);
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
     
-    let forceDirectionX = dx / distance;
-    let forceDirectionY = dy / distance;
+    const forceDirectionX = dx / distance;
+    const forceDirectionY = dy / distance;
     
     // Max distance, past that the force is 0
-    let maxDistance = mouse.radius;
-    let force = (maxDistance - distance) / maxDistance;
+    const maxDistance = mouse.radius;
+    const force = (maxDistance - distance) / maxDistance;
 
     // Reduce the base pull strength to make it a slow, gentle attraction
-    let pullStrength = 0.08; 
-    let directionX = forceDirectionX * force * this.density * pullStrength;
-    let directionY = forceDirectionY * force * this.density * pullStrength;
+    const pullStrength = 0.08; 
+    const directionX = forceDirectionX * force * this.density * pullStrength;
+    const directionY = forceDirectionY * force * this.density * pullStrength;
 
     if (distance < mouse.radius) {
       // Gentle attraction towards cursor
@@ -66,11 +66,11 @@ class Star {
       
       // Return to base position softly
       if (this.x !== this.baseX) {
-        let dx = this.x - this.baseX;
+        const dx = this.x - this.baseX;
         this.x -= dx / 20;
       }
       if (this.y !== this.baseY) {
-        let dy = this.y - this.baseY;
+        const dy = this.y - this.baseY;
         this.y -= dy / 20;
       }
     }
@@ -126,8 +126,8 @@ export function StarryBackground() {
       const numberOfParticles = (window.innerWidth * window.innerHeight) / 6000;
       
       for (let i = 0; i < numberOfParticles; i++) {
-        let x = Math.random() * window.innerWidth;
-        let y = Math.random() * window.innerHeight;
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
         particleArray.push(new Star(x, y));
       }
     };
@@ -156,12 +156,12 @@ export function StarryBackground() {
     const connect = (ctx: CanvasRenderingContext2D, stars: Star[], isLight: boolean) => {
       for (let a = 0; a < stars.length; a++) {
         for (let b = a; b < stars.length; b++) {
-          let dx = stars[a].x - stars[b].x;
-          let dy = stars[a].y - stars[b].y;
-          let distance = dx * dx + dy * dy;
+          const dx = stars[a].x - stars[b].x;
+          const dy = stars[a].y - stars[b].y;
+          const distance = dx * dx + dy * dy;
           
           if (distance < 6000) { // Increased connection distance
-            let opacityValue = 1 - (distance / 6000);
+            const opacityValue = 1 - (distance / 6000);
             
             // Calculate a mixed hue based on both connected dots for a multi-color effect
             const mixedHue = (stars[a].hue + stars[b].hue) / 2;

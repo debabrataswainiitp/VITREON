@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { GlassButton } from "../glass/GlassButton";
-import { Hexagon, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 
 
@@ -20,8 +20,10 @@ export function Navbar() {
 
   // Sync activeTab with pathname on mount (for /pricing)
   useEffect(() => {
-    if (pathname === "/pricing") setActiveTab("/pricing");
-  }, [pathname]);
+    if (pathname === "/pricing" && activeTab !== "/pricing") {
+      setTimeout(() => setActiveTab("/pricing"), 0);
+    }
+  }, [pathname, activeTab]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,14 +44,14 @@ export function Navbar() {
   ];
 
   const navLinks = isSignedIn 
-    ? [...baseNavLinks, { label: "Dashboard", href: "/dashboard" }, { label: "Chat", href: "/chat" }]
+    ? [...baseNavLinks, { label: "Chat", href: "/chat" }]
     : baseNavLinks;
 
   return (
     <>
       <motion.header
         className={cn(
-          "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 overflow-hidden border",
+          "fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 border",
           scrolled 
             ? "top-0 w-full max-w-full rounded-none md:rounded-b-3xl backdrop-blur-md py-3" 
             : "top-6 w-[calc(100%-3rem)] max-w-4xl rounded-full backdrop-blur-md py-2"
@@ -75,8 +77,8 @@ export function Navbar() {
                 src="/logo.png" 
                 alt="Vitreon AI" 
                 className="h-full w-auto object-contain" 
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 1.4, ease: "easeInOut" }}
               />
               <div className="absolute inset-0 bg-gradient-accent blur-md opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none" />
             </div>
@@ -137,7 +139,10 @@ export function Navbar() {
                   </SignUpButton>
                 </>
               ) : (
-                <UserButton />
+                <div className="flex items-center gap-4">
+                  <CreditsDisplay />
+                  <UserButton />
+                </div>
               )}
             </div>
           </nav>
@@ -215,5 +220,164 @@ export function Navbar() {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+function ProgressRing({ percentage, text, colorClass = "text-emerald-500" }: { percentage: number, text: string, colorClass?: string }) {
+  const radius = 22;
+  const stroke = 4;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[13px] font-bold text-[var(--text-primary)]">{text}</span>
+      <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
+        <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg] absolute">
+          <circle
+            stroke="rgba(255,255,255,0.15)"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <circle
+            stroke="currentColor"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={circumference + ' ' + circumference}
+            style={{ strokeDashoffset, transition: "stroke-dashoffset 0.5s ease-in-out" }}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            className={colorClass}
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function CreditsDisplay() {
+  const [data, setData] = useState<{ credits: number, subscriptionCredits: number, plan: string | null } | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 0);
+    const fetchCredits = () => {
+      fetch(`/api/user/credits?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(setData)
+        .catch(console.error);
+    };
+
+    fetchCredits();
+
+    window.addEventListener("focus", fetchCredits);
+    return () => window.removeEventListener("focus", fetchCredits);
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (!mounted) return <div className="w-24 h-9 animate-pulse bg-white/5 rounded-full" />;
+  if (!data) return <div className="w-24 h-9 animate-pulse bg-white/5 rounded-full" />;
+
+  const totalCredits = data.credits + data.subscriptionCredits;
+
+  const maxSub = data.plan?.toLowerCase() === "starter" ? 300 : data.plan?.toLowerCase() === "pro" ? 2000 : Math.max(data.subscriptionCredits, 1);
+  const subPercentage = data.subscriptionCredits >= 999000 ? 100 : Math.min(100, Math.round((data.subscriptionCredits / maxSub) * 100));
+  const subPercentageText = data.subscriptionCredits >= 999000 ? "∞" : `${subPercentage}%`;
+
+  // Use localStorage to track the "high water mark" of instant credits for an accurate progress ring
+  const storedMax = typeof window !== 'undefined' ? parseInt(localStorage.getItem('maxInstantCredits') || '0') : 0;
+  const maxInstant = Math.max(storedMax, data.credits, 100);
+  
+  if (typeof window !== 'undefined' && data.credits > storedMax) {
+    localStorage.setItem('maxInstantCredits', data.credits.toString());
+  }
+
+  const instantPercentage = data.credits === 0 ? 0 : Math.min(100, Math.round((data.credits / maxInstant) * 100));
+  const instantPercentageText = `${instantPercentage}%`;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-1.5 min-h-[38px] rounded-full bg-gradient-to-r from-[rgba(99,102,241,0.15)] to-[rgba(6,182,212,0.15)] border border-[rgba(99,102,241,0.3)] shadow-[0_0_15px_rgba(99,102,241,0.1)] hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] hover:border-[rgba(99,102,241,0.5)] outline-none transition-all duration-300"
+      >
+        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" />
+        
+        <div className="flex items-center gap-1.5 whitespace-nowrap">
+          {data.plan && (
+            <span className="text-[11px] uppercase font-bold tracking-wider text-emerald-400 mr-1 opacity-90">
+              {data.plan}
+            </span>
+          )}
+          <span className="text-[15px] font-bold text-[var(--text-primary)] tracking-wide">
+            {totalCredits >= 999000 ? "∞" : totalCredits.toLocaleString()}
+          </span>
+          <span className="text-[var(--text-muted)] font-medium text-xs uppercase tracking-wider">
+            credits
+          </span>
+          {/* Yellow Coin SVG */}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400 shrink-0 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)] ml-1">
+            <circle cx="8" cy="8" r="6"/>
+            <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+            <path d="M7 6h1v4"/>
+            <path d="m16.71 13.88.7.71-2.82 2.82"/>
+          </svg>
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full right-0 mt-2 w-72 rounded-2xl bg-[rgba(25,26,35,0.95)] backdrop-blur-2xl border border-[rgba(255,255,255,0.1)] shadow-2xl overflow-hidden z-50 flex flex-col p-4"
+          >
+            <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-4">Credit Balance</div>
+            
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col">
+                <span className="text-sm text-[var(--text-primary)] font-medium mb-1">Subscription</span>
+                <span className="text-xs text-[var(--text-muted)]">Remaining: {data.subscriptionCredits >= 999000 ? "∞" : data.subscriptionCredits.toLocaleString()}</span>
+              </div>
+              <ProgressRing percentage={subPercentage} text={subPercentageText} colorClass="text-emerald-500" />
+            </div>
+            
+            <div className="flex justify-between items-center pb-4 border-b border-[rgba(255,255,255,0.1)] mb-4">
+              <div className="flex flex-col">
+                <span className="text-sm text-[var(--text-primary)] font-medium mb-1">Instant Packs</span>
+                <span className="text-xs text-[var(--text-muted)]">Remaining: {data.credits.toLocaleString()}</span>
+              </div>
+              <ProgressRing percentage={instantPercentage} text={instantPercentageText} colorClass="text-cyan-500" />
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-[var(--text-muted)]">Total Available</span>
+              <span className="text-sm font-bold text-white">{totalCredits >= 999000 ? "∞" : totalCredits.toLocaleString()}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

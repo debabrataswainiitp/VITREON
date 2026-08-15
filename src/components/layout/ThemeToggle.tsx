@@ -9,7 +9,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     const stored = localStorage.getItem("theme");
     if (stored === "light") {
       setIsLight(true);
@@ -30,14 +30,14 @@ export function ThemeToggle() {
   };
 
   if (!mounted) return (
-     <div className="fixed top-6 right-6 z-[100] w-[4.25rem] h-9 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] shadow-xl"></div>
+     <div className="fixed bottom-6 right-6 z-[100] w-[4.25rem] h-9 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] shadow-xl"></div>
   );
 
   return (
     <button
       onClick={toggleTheme}
       className={cn(
-        "fixed top-6 right-6 z-[100] flex items-center w-[4.25rem] h-9 rounded-full cursor-pointer overflow-hidden transition-all duration-500 border backdrop-blur-xl",
+        "fixed bottom-6 right-6 z-[100] flex items-center w-[4.25rem] h-9 rounded-full cursor-pointer overflow-hidden transition-all duration-500 border backdrop-blur-xl",
         isLight 
           ? "bg-[rgba(255,255,255,0.6)] border-[rgba(255,255,255,0.6)] shadow-[inset_0_1px_4px_rgba(255,255,255,0.5),0_4px_15px_rgba(0,0,0,0.05)]" 
           : "bg-[rgba(10,11,16,0.6)] border-[rgba(255,255,255,0.15)] shadow-[inset_0_1px_4px_rgba(255,255,255,0.1),0_4px_15px_rgba(0,0,0,0.3)]"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Hexagon } from "lucide-react";
+import Image from "next/image";
 
 export function InitialLoader() {
   const [loading, setLoading] = useState(true);
@@ -10,7 +11,7 @@ export function InitialLoader() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    setTimeout(() => setIsMounted(true), 0);
     // Prevent scrolling while loading
     document.body.style.overflow = "hidden";
 
@@ -60,7 +61,7 @@ export function InitialLoader() {
             className="relative mb-12"
           >
             <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-30 animate-pulse rounded-full" />
-            <img src="/logo.png" alt="Vitreon Logo" className="w-20 h-20 relative z-10 object-contain drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
+            <Image src="/logo.png" alt="Vitreon Logo" width={80} height={80} className="relative z-10 object-contain drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
           </motion.div>
 
           {/* Primary Text */}
