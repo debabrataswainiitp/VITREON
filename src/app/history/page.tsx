@@ -64,7 +64,7 @@ export default function HistoryPage() {
         {/* Header & Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <Link href="/home" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-4 transition-colors">
+            <Link href="/" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-4 transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Chat</span>
             </Link>
@@ -141,7 +141,7 @@ function HistoryCard({ item, onTogglePin, onDelete }: { item: ChatHistoryItem, o
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ layout: { type: "spring", stiffness: 300, damping: 30 } }}
     >
-      <Link href="/home">
+      <Link href="/">
         <GlassPanel interactive className="p-5 flex flex-col group h-[160px]">
           
           <div className="flex justify-between items-start mb-3">

@@ -67,7 +67,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center pt-24 px-6 relative z-10 pb-24">
       <div className="w-full max-w-3xl flex flex-col">
         
-        <Link href="/home" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-8 transition-colors">
+        <Link href="/" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Chat</span>
         </Link>

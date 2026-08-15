@@ -57,10 +57,19 @@ export default function PricingPage() {
       
       // If we are in mock mode from our backend
       if (data.mock) {
-        setTimeout(() => {
+        const verifyRes = await fetch("/api/razorpay/verify-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isMock: true, packId: itemId, amount, isSub: itemType === "sub" })
+        });
+        const verifyData = await verifyRes.json();
+        if (verifyData.success) {
           setSuccessId(itemId);
-          setTimeout(() => router.push("/home"), 1000);
-        }, 1500);
+          setTimeout(() => router.push("/"), 1000);
+        } else {
+          alert("Mock Payment verification failed");
+          setLoadingId(null);
+        }
         return;
       }
 
@@ -79,7 +88,7 @@ export default function PricingPage() {
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
             setSuccessId(itemId);
-            setTimeout(() => router.push("/home"), 1000);
+            setTimeout(() => router.push("/"), 1000);
           } else {
             alert("Payment verification failed");
             setLoadingId(null);

@@ -29,7 +29,7 @@ export default function SettingsPage() {
         
         {/* Sidebar */}
         <div className="w-full md:w-64 flex-shrink-0">
-          <Link href="/home" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-8 transition-colors">
+          <Link href="/" className="inline-flex items-center gap-2 text-[var(--text-muted)] hover:text-white mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Chat</span>
           </Link>
