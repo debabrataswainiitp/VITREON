@@ -11,7 +11,6 @@ import { easings } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 const suggestedPrompts = [
   "Synthesize the latest research on solid-state batteries.",
   "Debug this React memory leak.",
@@ -27,6 +26,7 @@ export default function HomePage() {
   
   const [chats, setChats] = useState<any[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [showOutofCreditsModal, setShowOutofCreditsModal] = useState(false);
 
   const fetchChats = async () => {
     try {
@@ -85,16 +85,25 @@ export default function HomePage() {
     if (window.innerWidth < 768) setMobileRailOpen(false);
   };
 
-  const { messages, sendMessage: append, setMessages, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-      body: {
-        agent: activeAgent,
-        chatId: activeChatId,
-        model: activeModel
+  const chatObj = useChat({
+    api: '/api/chat',
+    body: {
+      agent: activeAgent,
+      chatId: activeChatId,
+      model: activeModel
+    },
+    onError: (err: any) => {
+      if (err.message.includes('402') || err.message.toLowerCase().includes('credits')) {
+        setShowOutofCreditsModal(true);
       }
-    })
-  });
+    }
+  } as any) as any;
+  
+  const messages = chatObj.messages;
+  const setMessages = chatObj.setMessages;
+  const status = chatObj.status;
+  const error = chatObj.error;
+  const append = chatObj.append || chatObj.sendMessage || chatObj.appendMessage;
 
   useEffect(() => {
     if (status === 'ready') {
@@ -120,7 +129,7 @@ export default function HomePage() {
 
   const handleSend = (text: string) => {
     append(
-      { text },
+      { role: 'user', content: text },
       { body: { agent: activeAgent, chatId: activeChatId, model: activeModel } }
     );
   };
@@ -317,7 +326,7 @@ export default function HomePage() {
           ) : (
             <div className="w-full max-w-4xl mx-auto flex flex-col pb-6">
               <AnimatePresence initial={false}>
-                {messages.map((msg) => (
+                {messages.map((msg: any) => (
                   <ChatBubble key={msg.id} message={msg as CustomMessage} />
                 ))}
                 {isThinking && (
@@ -328,12 +337,47 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Unified Composer */}
         <div className="flex-shrink-0 bg-gradient-to-t from-[var(--bg-base)] to-transparent pt-4 flex flex-col items-center pb-2">
           <ChatComposer onSend={handleSend} />
         </div>
         
       </div>
+
+      <AnimatePresence>
+        {showOutofCreditsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-[rgba(30,10,15,0.85)] backdrop-blur-3xl border border-red-500/20 p-8 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.15)] max-w-md w-full flex flex-col items-center text-center relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-red-500/10 to-transparent pointer-events-none" />
+              <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
+                <Hexagon className="w-8 h-8 text-red-400 animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Out of Credits</h3>
+              <p className="text-red-200/70 mb-8 leading-relaxed text-sm">
+                You've used up all your available credits. To continue chatting, please <Link href="/pricing" className="text-red-400 hover:text-red-300 underline underline-offset-4 decoration-red-500/30 transition-colors">top-up</Link> your balance or upgrade your subscription.
+              </p>
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setShowOutofCreditsModal(false)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-white/10 text-white/70 hover:bg-white/5 transition-colors font-medium text-sm"
+                >
+                  Close
+                </button>
+                <Link
+                  href="/pricing"
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-500/90 hover:bg-red-500 text-white transition-colors font-medium shadow-lg shadow-red-500/20 flex items-center justify-center text-sm"
+                >
+                  View Pricing
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

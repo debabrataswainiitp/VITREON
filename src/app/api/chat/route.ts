@@ -72,6 +72,24 @@ export async function POST(req: Request) {
       currentChatId = chat.id;
     }
 
+    // Check Credits
+    if (dbUser.subscriptionCredits <= 0 && dbUser.credits <= 0) {
+      return NextResponse.json({ error: 'You have run out of credits. Please recharge or upgrade your subscription.' }, { status: 402 });
+    }
+
+    // Deduct credits
+    if (dbUser.subscriptionCredits > 0) {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { subscriptionCredits: { decrement: 1 } }
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: dbUser.id },
+        data: { credits: { decrement: 1 } }
+      });
+    }
+
     if (lastMessage) {
       // Fire and forget user message to reduce Time-To-First-Token
       prisma.message.create({
