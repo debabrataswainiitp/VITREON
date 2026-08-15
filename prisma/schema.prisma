@@ -16,7 +16,8 @@ model User {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  credits   Int      @default(0)
+  credits   Int      @default(100)
+  subscriptionCredits Int @default(0)
 
   subscriptions Subscription[]
   chats         Chat[]
