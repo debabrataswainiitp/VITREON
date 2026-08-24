@@ -52,7 +52,9 @@ export function ChatBubble({ message }: { message: CustomMessage }) {
           )}
           
           <div className="whitespace-pre-wrap">
-            {message.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')}
+            {message.parts && message.parts.length > 0
+              ? message.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')
+              : (message as any).content}
           </div>
         </div>
       </div>
