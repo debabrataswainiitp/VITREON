@@ -50,7 +50,7 @@ export default function PricingPage() {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ packId: itemId, amount })
+        body: JSON.stringify({ packId: itemId, isSub: itemType === "sub" })
       });
       
       const data = await res.json();
@@ -60,7 +60,7 @@ export default function PricingPage() {
         const verifyRes = await fetch("/api/razorpay/verify-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isMock: true, packId: itemId, amount, isSub: itemType === "sub" })
+          body: JSON.stringify({ razorpay_order_id: data.id, packId: itemId, isSub: itemType === "sub" })
         });
         const verifyData = await verifyRes.json();
         if (verifyData.success) {
@@ -83,7 +83,7 @@ export default function PricingPage() {
           const verifyRes = await fetch("/api/razorpay/verify-order", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...response, packId: itemId, amount, isSub: itemType === "sub" })
+            body: JSON.stringify({ ...response })
           });
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
