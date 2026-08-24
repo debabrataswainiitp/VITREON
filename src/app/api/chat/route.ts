@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages, type UIMessage } from 'ai';
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/db';
@@ -18,8 +18,8 @@ export const MASTER_PROMPTS: Record<AgentId, string> = {
 
 export async function POST(req: Request) {
   try {
+    // --- Auth first, before touching anything else ---
     const user = await currentUser();
-    
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -29,7 +29,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User email not found' }, { status: 400 });
     }
 
-    // Upsert user in our DB (single round trip)
     const dbUser = await prisma.user.upsert({
       where: { email },
       update: {},
@@ -39,7 +38,15 @@ export async function POST(req: Request) {
       }
     });
 
-    const { messages, agent = 'prism', chatId, model = 'nvidia/nemotron-3.5-lightning:free' } = await req.json();
+    // --- Single body read; chatId can arrive via body or header ---
+    const body = await req.json();
+    const {
+      messages,
+      agent = 'prism',
+      model = 'nvidia/nemotron-3.5-lightning:free',
+    }: { messages: UIMessage[]; agent?: string; model?: string } = body;
+
+    const chatId: string | undefined = body.chatId || req.headers.get('x-chat-id') || undefined;
 
     const systemPrompt = MASTER_PROMPTS[agent as AgentId] || MASTER_PROMPTS.prism;
 
@@ -48,50 +55,58 @@ export async function POST(req: Request) {
       apiKey: process.env.OPENROUTER_API_KEY,
     });
 
-    const lastMessage = messages[messages.length - 1];
-    
+    // Extract plain text from the last message — used for DB storage and chat titles
+    const lastMessage: any = messages[messages.length - 1];
     let messageText = '';
     if (lastMessage) {
       if (typeof lastMessage.content === 'string') {
         messageText = lastMessage.content;
       } else if (Array.isArray(lastMessage.content)) {
-        messageText = lastMessage.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\\n');
+        messageText = lastMessage.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
       } else if (Array.isArray(lastMessage.parts)) {
-        messageText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\\n');
+        messageText = lastMessage.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n');
       }
     }
 
+    // --- Ownership check on an existing chat (fixes IDOR); create a new one only if none was supplied ---
     let currentChatId = chatId;
-    if (!currentChatId) {
+    if (currentChatId) {
+      const owned = await prisma.chat.findUnique({
+        where: { id: currentChatId, userId: dbUser.id },
+      });
+      if (!owned) {
+        return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
+      }
+    } else {
       const chat = await prisma.chat.create({
         data: {
           userId: dbUser.id,
-          title: messageText.substring(0, 50) || 'New Chat',
+          title: messageText.slice(0, 50) || 'New Chat',
         }
       });
       currentChatId = chat.id;
     }
 
-    // Check Credits
-    if (dbUser.subscriptionCredits <= 0 && dbUser.credits <= 0) {
-      return NextResponse.json({ error: 'You have run out of credits. Please recharge or upgrade your subscription.' }, { status: 402 });
-    }
-
-    // Deduct credits
-    if (dbUser.subscriptionCredits > 0) {
-      await prisma.user.update({
-        where: { id: dbUser.id },
-        data: { subscriptionCredits: { decrement: 1 } }
-      });
-    } else {
-      await prisma.user.update({
-        where: { id: dbUser.id },
-        data: { credits: { decrement: 1 } }
-      });
+    // --- Atomic credit deduction — prevents race-condition overspend ---
+    const spendFromSub = dbUser.subscriptionCredits > 0;
+    const spend = await prisma.user.updateMany({
+      where: {
+        id: dbUser.id,
+        ...(spendFromSub ? { subscriptionCredits: { gt: 0 } } : { credits: { gt: 0 } }),
+      },
+      data: spendFromSub
+        ? { subscriptionCredits: { decrement: 1 } }
+        : { credits: { decrement: 1 } },
+    });
+    if (spend.count === 0) {
+      return NextResponse.json(
+        { error: 'You have run out of credits. Please recharge or upgrade your subscription.' },
+        { status: 402 }
+      );
     }
 
     if (lastMessage) {
-      // Fire and forget user message to reduce Time-To-First-Token
+      // Fire and forget — reduces time-to-first-token
       prisma.message.create({
         data: {
           chatId: currentChatId,
@@ -101,23 +116,16 @@ export async function POST(req: Request) {
       }).catch(err => console.error("Error saving user message:", err));
     }
 
-    const coreMessages = messages.map((msg: any) => ({
-      role: msg.role,
-      content: typeof msg.content === 'string' 
-        ? msg.content 
-        : (Array.isArray(msg.content) ? msg.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\\n') 
-        : (Array.isArray(msg.parts) ? msg.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\\n') : ''))
-    }));
-
     const result = streamText({
       model: openrouter(model),
       system: systemPrompt,
-      messages: coreMessages,
+      // Official SDK converter — replaces the old manual coreMessages mapping
+      messages: await convertToModelMessages(messages),
       onFinish: async ({ text }) => {
         try {
           await prisma.message.create({
             data: {
-              chatId: currentChatId,
+              chatId: currentChatId!,
               role: 'assistant',
               content: text,
             }
@@ -128,11 +136,12 @@ export async function POST(req: Request) {
       }
     });
 
-    return result.toTextStreamResponse({
-      headers: {
-        'x-chat-id': currentChatId
-      }
-    });
+    // useChat expects a UI-message stream, not a plain text stream —
+    // this is the fix for the "response appears all at once" / no live streaming bug.
+    const response = result.toUIMessageStreamResponse();
+    response.headers.set('x-chat-id', currentChatId!);
+    response.headers.set('Access-Control-Expose-Headers', 'x-chat-id');
+    return response;
   } catch (error: any) {
     console.error('Chat API Error:', error);
     return NextResponse.json(
