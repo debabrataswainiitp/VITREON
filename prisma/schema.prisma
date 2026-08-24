@@ -56,3 +56,10 @@ model Message {
 
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }
+
+model ProcessedPayment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  razorpayOrderId String   @unique
+  userId          String   @db.ObjectId
+  createdAt       DateTime @default(now())
+}
