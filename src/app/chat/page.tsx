@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, AgentId } from "@/store/useAppStore";
 import { AgentRail, agentsData } from "@/components/chat/AgentRail";
@@ -11,6 +11,8 @@ import { easings } from "@/lib/animations";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+
 const suggestedPrompts = [
   "Synthesize the latest research on solid-state batteries.",
   "Debug this React memory leak.",
@@ -23,10 +25,18 @@ export default function HomePage() {
   const [mobileRailOpen, setMobileRailOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const [chats, setChats] = useState<any[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const activeChatIdRef = useRef<string | null>(null);
+  const activeAgentRef = useRef(activeAgent);
+  const activeModelRef = useRef(activeModel);
   const [showOutofCreditsModal, setShowOutofCreditsModal] = useState(false);
+
+  // Keep refs in sync so the transport always reads the current values at send-time
+  useEffect(() => { activeChatIdRef.current = activeChatId; }, [activeChatId]);
+  useEffect(() => { activeAgentRef.current = activeAgent; }, [activeAgent]);
+  useEffect(() => { activeModelRef.current = activeModel; }, [activeModel]);
 
   const fetchChats = async () => {
     try {
@@ -85,38 +95,41 @@ export default function HomePage() {
     if (window.innerWidth < 768) setMobileRailOpen(false);
   };
 
-  const chatObj = useChat({
+  // Transport is created once. All values that change over time (agent, model,
+  // chatId) are read through refs inside the callbacks below, so the transport
+  // itself never needs to be recreated — this sidesteps known reactivity gaps
+  // where useChat doesn't pick up a replaced transport instance.
+  const transport = useMemo(() => new DefaultChatTransport({
     api: '/api/chat',
-    body: {
-      agent: activeAgent,
-      chatId: activeChatId,
-      model: activeModel
+    body: () => ({
+      agent: activeAgentRef.current,
+      model: activeModelRef.current,
+      chatId: activeChatIdRef.current,
+    }),
+    fetch: async (url: RequestInfo | URL, options?: RequestInit) => {
+      const res = await fetch(url, options);
+      const newChatId = res.headers.get('x-chat-id');
+      if (newChatId && newChatId !== activeChatIdRef.current) {
+        setActiveChatId(newChatId);
+        fetchChats();
+      }
+      return res;
     },
+  }), []);
+
+  const chatObj = useChat({
+    transport,
     onError: (err: any) => {
-      if (err.message.includes('402') || err.message.toLowerCase().includes('credits')) {
+      if (err?.message?.includes('402') || err?.message?.toLowerCase?.().includes('credits')) {
         setShowOutofCreditsModal(true);
       }
-    }
-  } as any) as any;
-  
+    },
+  });
+
   const messages = chatObj.messages;
   const setMessages = chatObj.setMessages;
   const status = chatObj.status;
   const error = chatObj.error;
-  const append = chatObj.append || chatObj.sendMessage || chatObj.appendMessage;
-
-  useEffect(() => {
-    if (status === 'ready') {
-      fetch('/api/chats').then(res => res.json()).then(data => {
-        if (data && data.length > 0) {
-          setChats(data);
-          if (!activeChatId && messages.length > 0) {
-            setActiveChatId(data[0].id);
-          }
-        }
-      });
-    }
-  }, [status]);
 
   const isThinking = status === 'submitted' || status === 'streaming';
 
@@ -128,21 +141,18 @@ export default function HomePage() {
   }, [messages, isThinking]);
 
   const handleSend = (text: string) => {
-    append(
-      { role: 'user', content: text },
-      { body: { agent: activeAgent, chatId: activeChatId, model: activeModel } }
-    );
+    chatObj.sendMessage({ text });
   };
 
   const agent = agentsData[activeAgent];
 
   return (
     <div className="h-screen w-full flex overflow-hidden relative z-10">
-      
+
       {/* Desktop Chat History Sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
-          <motion.div 
+          <motion.div
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 256, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
@@ -150,8 +160,8 @@ export default function HomePage() {
             className="hidden md:flex flex-col border-r border-[rgba(255,255,255,0.1)] bg-[rgba(10,11,16,0.5)] backdrop-blur-md pt-20 pb-6 px-4 overflow-hidden flex-shrink-0"
           >
             <div className="w-full h-full flex flex-col">
-              <button 
-                onClick={createNewChat} 
+              <button
+                onClick={createNewChat}
                 className="w-full mb-6 p-3 rounded-xl bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-[var(--text-primary)] transition-colors flex items-center justify-center gap-2 text-sm font-medium"
               >
                 <MessageSquarePlus className="w-4 h-4" />
@@ -165,13 +175,13 @@ export default function HomePage() {
                   <PanelLeftClose className="w-4 h-4" />
                 </button>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto flex flex-col gap-1 hide-scrollbar -mx-2 px-2 w-[240px]">
                 {chats.length === 0 ? (
                   <div className="text-[var(--text-muted)] text-sm px-2 mt-4 italic opacity-50">No recent chats</div>
                 ) : (
                   chats.map((chat) => (
-                    <div 
+                    <div
                       key={chat.id}
                       onClick={() => loadChat(chat.id)}
                       className={cn(
@@ -180,7 +190,7 @@ export default function HomePage() {
                       )}
                     >
                       <div className="truncate text-sm font-medium pr-6">{chat.title || 'New Chat'}</div>
-                      <button 
+                      <button
                         onClick={(e) => deleteChat(e, chat.id)}
                         className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded-md transition-all"
                       >
@@ -199,7 +209,7 @@ export default function HomePage() {
       <AnimatePresence>
         {mobileRailOpen && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -215,8 +225,8 @@ export default function HomePage() {
             >
               {/* Mobile Chat History Sidebar */}
               <div className="w-full h-full flex flex-col bg-[rgba(10,11,16,0.9)] backdrop-blur-xl pt-20 pb-6 px-4">
-                <button 
-                  onClick={createNewChat} 
+                <button
+                  onClick={createNewChat}
                   className="w-full mb-6 p-3 rounded-xl bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-[var(--text-primary)] transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                 >
                   <MessageSquarePlus className="w-4 h-4" />
@@ -230,7 +240,7 @@ export default function HomePage() {
                     <div className="text-[var(--text-muted)] text-sm px-2 mt-4 italic opacity-50">No recent chats</div>
                   ) : (
                     chats.map((chat) => (
-                      <div 
+                      <div
                         key={chat.id}
                         onClick={() => loadChat(chat.id)}
                         className={cn(
@@ -239,7 +249,7 @@ export default function HomePage() {
                         )}
                       >
                         <div className="truncate text-sm font-medium pr-6">{chat.title || 'New Chat'}</div>
-                        <button 
+                        <button
                           onClick={(e) => deleteChat(e, chat.id)}
                           className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 hover:bg-[rgba(255,255,255,0.1)] rounded-md transition-all"
                         >
@@ -257,12 +267,12 @@ export default function HomePage() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full bg-[rgba(10,11,16,0.2)]">
-        
+
         {/* Top Bar */}
         <header className="h-16 border-b border-[rgba(255,255,255,0.05)] bg-[rgba(10,11,16,0.3)] backdrop-blur-md flex items-center justify-between px-4 md:px-6 flex-shrink-0 relative z-20 transition-all">
           <div className="flex items-center gap-3">
             {!isSidebarOpen && (
-              <button 
+              <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="hidden md:flex p-2 -ml-2 text-[var(--text-muted)] hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
                 title="Open Sidebar"
@@ -270,7 +280,7 @@ export default function HomePage() {
                 <PanelLeft className="w-5 h-5" />
               </button>
             )}
-            <button 
+            <button
               className="md:hidden p-2 -ml-2 text-[var(--text-muted)] hover:text-white"
               onClick={() => setMobileRailOpen(true)}
             >
@@ -282,7 +292,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="relative w-6 h-6 flex items-center justify-center">
@@ -307,7 +317,7 @@ export default function HomePage() {
               </div>
               <h2 className="text-2xl font-heading font-semibold mb-2">How can we help today?</h2>
               <p className="text-[var(--text-muted)] mb-10 text-center">Prism will route your request to the most capable agent.</p>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                 {suggestedPrompts.map((prompt, i) => (
                   <motion.button
@@ -340,7 +350,7 @@ export default function HomePage() {
         <div className="flex-shrink-0 bg-gradient-to-t from-[var(--bg-base)] to-transparent pt-4 flex flex-col items-center pb-2">
           <ChatComposer onSend={handleSend} />
         </div>
-        
+
       </div>
 
       <AnimatePresence>
