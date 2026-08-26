@@ -11,9 +11,31 @@ export interface CustomMessage extends AIMessage {
   agentId?: AgentId;
 }
 
+/** Strip markdown formatting symbols so chat text renders clean */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')   // **bold** → bold
+    .replace(/\*([^*]+)\*/g, '$1')        // *italic* → italic
+    .replace(/^#{1,6}\s+/gm, '')          // # headings → plain text
+    .replace(/`{3}[\s\S]*?`{3}/g, (m) => // ```code blocks``` → keep inner text
+      m.replace(/^`{3}.*\n?/m, '').replace(/\n?`{3}$/m, ''))
+    .replace(/`([^`]+)`/g, '$1')          // `inline code` → plain text
+    .replace(/^[-*+]\s+/gm, '• ')         // - list items → bullet
+    .replace(/^\d+\.\s+/gm, '')           // 1. numbered lists → plain
+    .trim();
+}
+
 export function ChatBubble({ message }: { message: CustomMessage }) {
   const isUser = message.role === "user";
-  
+
+  // Extract raw text from parts or content
+  const rawText = message.parts && message.parts.length > 0
+    ? message.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')
+    : (message as any).content || '';
+
+  // Only strip markdown for assistant messages
+  const displayText = isUser ? rawText : stripMarkdown(rawText);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40, scale: 0.8, rotateX: -40, filter: "blur(8px)", transformPerspective: 600 }}
@@ -52,9 +74,7 @@ export function ChatBubble({ message }: { message: CustomMessage }) {
           )}
           
           <div className="whitespace-pre-wrap">
-            {message.parts && message.parts.length > 0
-              ? message.parts.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n')
-              : (message as any).content}
+            {displayText}
           </div>
         </div>
       </div>

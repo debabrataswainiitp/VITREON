@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, convertToModelMessages, type UIMessage } from 'ai';
+import { streamText, type UIMessage } from 'ai';
 import { NextResponse } from 'next/server';
 import { currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/db';
@@ -7,13 +7,15 @@ import { AgentId } from '@/store/useAppStore';
 
 export const maxDuration = 30;
 
+const CONCISE_INSTRUCTIONS = ` Keep your answers clear, concise, and to the point. Do not repeat information from previous messages. Do not use markdown formatting such as asterisks (*), double asterisks (**), hash symbols (#), or backticks in your responses. Write in plain text only. Only give detailed or in-depth answers when the user explicitly asks for a deep explanation or research.`;
+
 export const MASTER_PROMPTS: Record<AgentId, string> = {
-  prism: "You are Prism, the central orchestrator and general advanced AI assistant by Vitreon. You are highly capable at general coding, architecture, and routing users to specific solutions.",
-  lucent: "You are Lucent, a research & knowledge agent for Vitreon. You excel at finding information, synthesizing complex research papers, web search insights, and summarization.",
-  refract: "You are Refract, a deeply technical code agent for Vitreon. You specialize in writing robust code, debugging complex issues, algorithms, and strict performance optimizations.",
-  spectrum: "You are Spectrum, a creative and content-focused agent for Vitreon. You specialize in ideation, writing creative copy, storytelling, and UI/UX design concepts.",
-  facet: "You are Facet, a data & analysis agent for Vitreon. You specialize in interpreting structured data, generating charts, statistical reasoning, and data engineering.",
-  echo: "You are Echo, a memory and context agent for Vitreon. You specialize in recalling past context, summarizing long conversations, and helping manage the user's history."
+  prism: "You are Prism, the central orchestrator and general advanced AI assistant by Vitreon. You are highly capable at general coding, architecture, and routing users to specific solutions." + CONCISE_INSTRUCTIONS,
+  lucent: "You are Lucent, a research & knowledge agent for Vitreon. You excel at finding information, synthesizing complex research papers, web search insights, and summarization." + CONCISE_INSTRUCTIONS,
+  refract: "You are Refract, a deeply technical code agent for Vitreon. You specialize in writing robust code, debugging complex issues, algorithms, and strict performance optimizations." + CONCISE_INSTRUCTIONS,
+  spectrum: "You are Spectrum, a creative and content-focused agent for Vitreon. You specialize in ideation, writing creative copy, storytelling, and UI/UX design concepts." + CONCISE_INSTRUCTIONS,
+  facet: "You are Facet, a data & analysis agent for Vitreon. You specialize in interpreting structured data, generating charts, statistical reasoning, and data engineering." + CONCISE_INSTRUCTIONS,
+  echo: "You are Echo, a memory and context agent for Vitreon. You specialize in recalling past context, summarizing long conversations, and helping manage the user's history." + CONCISE_INSTRUCTIONS
 };
 
 export async function POST(req: Request) {
@@ -116,18 +118,47 @@ export async function POST(req: Request) {
       }).catch(err => console.error("Error saving user message:", err));
     }
 
+    // Only send the latest user message to the model to prevent it from
+    // repeating all previous answers. The system prompt provides personality;
+    // the user's current question is the only thing the model needs.
+    const lastUserMessage = messages.filter((m: UIMessage) => m.role === 'user').pop();
+    let lastUserText = '';
+    if (lastUserMessage) {
+      if (typeof (lastUserMessage as any).content === 'string') {
+        lastUserText = (lastUserMessage as any).content;
+      } else if (Array.isArray((lastUserMessage as any).parts)) {
+        lastUserText = (lastUserMessage as any).parts
+          .filter((p: any) => p.type === 'text')
+          .map((p: any) => p.text)
+          .join('\n');
+      } else if (Array.isArray((lastUserMessage as any).content)) {
+        lastUserText = (lastUserMessage as any).content
+          .filter((p: any) => p.type === 'text')
+          .map((p: any) => p.text)
+          .join('\n');
+      }
+    }
+
     const result = streamText({
       model: openrouter(model),
       system: systemPrompt,
-      // Official SDK converter — replaces the old manual coreMessages mapping
-      messages: await convertToModelMessages(messages),
+      // Send only the current question — no conversation history — to prevent
+      // the model from echoing all prior answers back.
+      messages: [{ role: 'user' as const, content: lastUserText || messageText }],
       onFinish: async ({ text }) => {
         try {
+          // Strip any remaining markdown artifacts before saving
+          const cleanText = text
+            .replace(/\*\*([^*]+)\*\*/g, '$1')  // **bold** -> bold
+            .replace(/\*([^*]+)\*/g, '$1')      // *italic* -> italic
+            .replace(/^#{1,6}\s+/gm, '')         // # headings -> plain text
+            .replace(/`([^`]+)`/g, '$1');         // `code` -> code
+
           await prisma.message.create({
             data: {
               chatId: currentChatId!,
               role: 'assistant',
-              content: text,
+              content: cleanText,
             }
           });
         } catch (err) {
