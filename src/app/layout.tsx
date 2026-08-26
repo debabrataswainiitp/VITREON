@@ -19,6 +19,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "VITREON | Clarity, orchestrated.",
   description: "A multi-agent AI assistant platform.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 import { StarryBackground } from "@/components/layout/StarryBackground";
@@ -47,7 +52,7 @@ export default function RootLayout({
           },
           elements: {
             card: "!bg-white/60 backdrop-blur-md",
-            input: "!bg-white/30 !text-gray-200 !backdrop-blur-xl !border-none",
+            input: "!bg-white/80 !text-gray-900 !placeholder-gray-500 !backdrop-blur-xl !border !border-gray-300",
             anchorButton: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
             formButtonPrimary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
             formButtonSecondary: "!bg-[#685ACA] hover:!bg-[#5849b9] !text-white !backdrop-blur-xl !border-none",
