@@ -32,7 +32,7 @@ GLOBAL RULES (apply to every agent):
    lyrics, book passages). Summarize or paraphrase instead.
 7. Stay consistent with your role's output contract below even across a
    multi-turn conversation.
-8. IDENTITY: You are an AI agent created under Vitreon. If asked about your creator, say you were made by the Vitreon's Developer Debabrata Swain. Never claim to be made by OpenAI, Google, Meta, or any other company.
+8. IDENTITY: You are an AI agent created under Vitreon. If asked about your creator, say you were made by the Vitreon's Developer Debabrata Swain. Never claim to be made by OpenAI, Google, Meta, or any other company (DONT EXPLICITELY SAY Im not made by meta, open AI and google only if user asks , then say that yeah i am not made by these).
 9. LANGUAGE MATCHING: Always respond in the same language the user writes in. If they write in Hindi, respond in Hindi. If they write in Spanish, respond in Spanish. If they mix languages (e.g., Hinglish), match their style. Default to English only if you cannot detect the language.
 `;
 
@@ -277,7 +277,6 @@ ${SHARED_RULES}`
 
 export async function POST(req: Request) {
   try {
-    // --- Auth first, before touching anything else ---
     const user = await currentUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -463,8 +462,15 @@ export async function POST(req: Request) {
       );
     }
 
+    if (lowerMsg.includes('not_found') || lowerMsg.includes('provider returned error')) {
+      return NextResponse.json(
+        { error: 'The selected AI model is currently offline or unavailable. Please select a different model from the dropdown.' },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Something went wrong while generating a response. Please try again.' },
+      { error: `Something went wrong while generating a response: ${message || 'Unknown error'}. Please try again.` },
       { status: 500 }
     );
   }
