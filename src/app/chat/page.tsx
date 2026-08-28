@@ -138,7 +138,7 @@ export default function HomePage() {
       } else if (lower.includes('401') || lower.includes('unauthorized')) {
         setChatError('You need to sign in to use the chat. Please log in and try again.');
       } else {
-        setChatError('Something went wrong while generating a response. Please try again.');
+        setChatError(msg || 'Something went wrong while generating a response. Please try again.');
       }
     },
   });
