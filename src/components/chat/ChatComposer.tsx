@@ -9,10 +9,10 @@ import gsap from "gsap";
 import { cn } from "@/lib/utils";
 
 export const AI_MODELS = [
-  { id: 'openrouter/free', name: 'Auto (Best Free)' },
-  { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron Lightning' },
-  { id: 'google/gemma-4-26b-a4b-it:free', name: 'Gemma 4' },
-  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM' }
+  { id: 'openrouter/auto', name: 'Auto (Best Free)' },
+  { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nemotron Lightning' },
+  { id: 'google/gemma-2-9b-it:free', name: 'Gemma 4' },
+  { id: 'liquid/lfm-40b:free', name: 'Liquid LFM' }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
