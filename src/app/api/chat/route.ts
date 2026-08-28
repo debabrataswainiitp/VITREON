@@ -5,7 +5,8 @@ import { currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/db';
 import { AgentId } from '@/store/useAppStore';
 
-export const maxDuration = 30;
+// Allow up to 60 seconds for free-tier models that may be slow under load
+export const maxDuration = 60;
 
 const CONCISE_INSTRUCTIONS = ` Keep your answers clear, concise, and to the point. Do not repeat information from previous messages. Do not use markdown formatting such as asterisks (*), double asterisks (**), hash symbols (#), or backticks in your responses. Write in plain text only. Only give detailed or in-depth answers when the user explicitly asks for a deep explanation or research.`;
 
@@ -145,6 +146,10 @@ export async function POST(req: Request) {
       // Send only the current question — no conversation history — to prevent
       // the model from echoing all prior answers back.
       messages: [{ role: 'user' as const, content: lastUserText || messageText }],
+      // Cap output to prevent runaway generation that causes timeouts on free models
+      maxOutputTokens: 1024,
+      // Retry transient failures (network blips, temporary 429s) automatically
+      maxRetries: 2,
       onFinish: async ({ text }) => {
         try {
           // Strip any remaining markdown artifacts before saving
@@ -175,8 +180,35 @@ export async function POST(req: Request) {
     return response;
   } catch (error: any) {
     console.error('Chat API Error:', error);
+
+    // Provide specific error messages and status codes so the frontend can
+    // distinguish between different failure modes and show appropriate UI.
+    const message = error?.message || '';
+    const lowerMsg = message.toLowerCase();
+
+    if (lowerMsg.includes('rate limit') || lowerMsg.includes('429') || lowerMsg.includes('too many requests')) {
+      return NextResponse.json(
+        { error: 'The AI model is currently busy due to high demand. Please wait a moment and try again.' },
+        { status: 429 }
+      );
+    }
+
+    if (lowerMsg.includes('timeout') || lowerMsg.includes('timed out') || lowerMsg.includes('deadline')) {
+      return NextResponse.json(
+        { error: 'The response timed out. The model may be under heavy load — please try again.' },
+        { status: 504 }
+      );
+    }
+
+    if (lowerMsg.includes('context length') || lowerMsg.includes('token') || lowerMsg.includes('too long')) {
+      return NextResponse.json(
+        { error: 'Your message was too long for this model to process. Please try a shorter message.' },
+        { status: 413 }
+      );
+    }
+
     return NextResponse.json(
-      { error: error.message || 'An error occurred during chat processing' },
+      { error: 'Something went wrong while generating a response. Please try again.' },
       { status: 500 }
     );
   }

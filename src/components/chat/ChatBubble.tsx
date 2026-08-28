@@ -6,6 +6,7 @@ import { agentsData } from "./AgentRail";
 import { AgentId } from "@/store/useAppStore";
 import { easings } from "@/lib/animations";
 import { UIMessage as AIMessage } from "ai";
+import { AlertTriangle, RotateCcw, X } from "lucide-react";
 
 export interface CustomMessage extends AIMessage {
   agentId?: AgentId;
@@ -120,3 +121,61 @@ export function AgentThinking({ agentId }: { agentId: AgentId }) {
     </motion.div>
   );
 }
+
+export function ErrorBubble({
+  message,
+  onRetry,
+  onDismiss,
+}: {
+  message: string;
+  onRetry?: () => void;
+  onDismiss?: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 260, damping: 22 }}
+      className="flex w-full mb-6 justify-start"
+    >
+      <div className="flex gap-4 max-w-[85%] md:max-w-[75%]">
+        {/* Error Icon */}
+        <div className="relative w-8 h-8 flex-shrink-0 mt-1">
+          <div className="absolute inset-0 rounded-full opacity-40 blur-sm bg-gradient-to-br from-red-500 to-orange-500" />
+          <div className="relative w-full h-full rounded-full border border-red-500/30 bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+          </div>
+        </div>
+
+        {/* Error Content */}
+        <div className="glass-panel p-4 rounded-2xl rounded-tl-sm border border-red-500/15 bg-[rgba(239,68,68,0.06)]">
+          <p className="text-[14px] text-red-200/90 leading-relaxed mb-3">
+            {message}
+          </p>
+          <div className="flex items-center gap-2">
+            {onRetry && (
+              <button
+                onClick={onRetry}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.14)] border border-[rgba(255,255,255,0.1)] text-[13px] font-medium text-white/80 hover:text-white transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Retry
+              </button>
+            )}
+            {onDismiss && (
+              <button
+                onClick={onDismiss}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[rgba(255,255,255,0.06)] text-[13px] font-medium text-[var(--text-muted)] hover:text-white/70 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                Dismiss
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+

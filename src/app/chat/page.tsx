@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, AgentId } from "@/store/useAppStore";
 import { AgentRail, agentsData } from "@/components/chat/AgentRail";
 import { ChatComposer } from "@/components/chat/ChatComposer";
-import { ChatBubble, AgentThinking, CustomMessage } from "@/components/chat/ChatBubble";
+import { ChatBubble, AgentThinking, ErrorBubble, CustomMessage } from "@/components/chat/ChatBubble";
 import { Hexagon, Menu, UserCircle, MessageSquarePlus, Clock, MessageSquare, PanelLeftClose, PanelLeft, Trash2 } from "lucide-react";
 import { easings } from "@/lib/animations";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ export default function HomePage() {
   const activeAgentRef = useRef(activeAgent);
   const activeModelRef = useRef(activeModel);
   const [showOutofCreditsModal, setShowOutofCreditsModal] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
 
   // Keep refs in sync so the transport always reads the current values at send-time
   useEffect(() => { activeChatIdRef.current = activeChatId; }, [activeChatId]);
@@ -120,8 +121,24 @@ export default function HomePage() {
   const chatObj = useChat({
     transport,
     onError: (err: any) => {
-      if (err?.message?.includes('402') || err?.message?.toLowerCase?.().includes('credits')) {
+      const msg = err?.message || '';
+      const lower = msg.toLowerCase();
+
+      if (lower.includes('402') || lower.includes('credits') || lower.includes('recharge')) {
         setShowOutofCreditsModal(true);
+        return;
+      }
+
+      if (lower.includes('429') || lower.includes('rate limit') || lower.includes('busy')) {
+        setChatError('The AI model is busy right now due to high demand. Please wait a moment and try again.');
+      } else if (lower.includes('504') || lower.includes('timeout') || lower.includes('timed out')) {
+        setChatError('The response timed out. The model may be under heavy load — please try again.');
+      } else if (lower.includes('413') || lower.includes('too long') || lower.includes('context')) {
+        setChatError('Your message was too long for this model. Please try a shorter message.');
+      } else if (lower.includes('401') || lower.includes('unauthorized')) {
+        setChatError('You need to sign in to use the chat. Please log in and try again.');
+      } else {
+        setChatError('Something went wrong while generating a response. Please try again.');
       }
     },
   });
@@ -141,6 +158,7 @@ export default function HomePage() {
   }, [messages, isThinking]);
 
   const handleSend = (text: string) => {
+    setChatError(null);
     chatObj.sendMessage({ text });
   };
 
@@ -339,8 +357,23 @@ export default function HomePage() {
                 {messages.map((msg: any) => (
                   <ChatBubble key={msg.id} message={msg as CustomMessage} />
                 ))}
-                {isThinking && (
+                {isThinking && !chatError && (
                   <AgentThinking key="thinking" agentId={activeAgent} />
+                )}
+                {chatError && (
+                  <ErrorBubble
+                    key="error"
+                    message={chatError}
+                    onRetry={() => {
+                      setChatError(null);
+                      const lastUserMsg = messages.filter((m: any) => m.role === 'user').pop();
+                      if (lastUserMsg) {
+                        const text = lastUserMsg.parts?.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n') || (lastUserMsg as any).content || '';
+                        if (text) handleSend(text);
+                      }
+                    }}
+                    onDismiss={() => setChatError(null)}
+                  />
                 )}
               </AnimatePresence>
             </div>
