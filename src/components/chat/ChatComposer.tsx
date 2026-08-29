@@ -10,9 +10,13 @@ import { cn } from "@/lib/utils";
 
 export const AI_MODELS = [
   { id: 'openrouter/auto', name: 'Auto (Best Free)' },
-  { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nemotron Lightning' },
-  { id: 'google/gemma-2-9b-it:free', name: 'Gemma 4' },
-  { id: 'liquid/lfm-40b:free', name: 'Liquid LFM' }
+  { id: 'liquid/lfm-40b', name: 'Liquid LFM' },
+  { id: 'meta-llama/llama-3.1-8b-instruct:free', name: 'Llama 3.1 8B' },
+  { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder 32B' },
+  { id: 'microsoft/phi-3-mini-128k-instruct:free', name: 'Phi-3 Mini 128k' },
+  { id: 'mistralai/mistral-7b-instruct:free', name: 'Mistral 7B' },
+  { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nemotron Lightning', isOffline: true },
+  { id: 'google/gemma-2-9b-it:free', name: 'Gemma 4', isOffline: true }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
@@ -395,16 +399,25 @@ function ModelDropdown() {
               return (
                 <button
                   key={model.id}
-                  onClick={() => { setActiveModel(model.id); setIsOpen(false); }}
+                  onClick={() => { if (!model.isOffline) { setActiveModel(model.id); setIsOpen(false); } }}
+                  disabled={model.isOffline}
                   className={cn(
                     "flex flex-col items-start px-3 py-2.5 rounded-xl transition-colors outline-none text-left w-full",
-                    isActive ? "bg-[rgba(255,255,255,0.1)]" : "hover:bg-[rgba(255,255,255,0.05)]"
+                    isActive ? "bg-[rgba(255,255,255,0.1)]" : (model.isOffline ? "opacity-70 cursor-not-allowed" : "hover:bg-[rgba(255,255,255,0.05)]")
                   )}
                 >
                   <div className="flex items-center justify-between w-full mb-0.5">
-                    <span className={cn("text-sm font-semibold", isActive ? "text-white" : "text-[var(--text-primary)]")}>
-                      {model.name}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className={cn("text-sm font-semibold", isActive ? "text-white" : "text-[var(--text-primary)]")}>
+                        {model.name}
+                      </span>
+                      {model.isOffline && (
+                        <span className="text-[10px] font-medium text-red-400 mt-0.5 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                          uptime error (not available)
+                        </span>
+                      )}
+                    </div>
                     {isActive && (
                       <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                     )}

@@ -35,7 +35,7 @@ export const useAppStore = create<AppState>((set) => ({
   activeAgent: 'prism',
   setActiveAgent: (activeAgent) => set({ activeAgent }),
   
-  activeModel: 'nvidia/llama-3.1-nemotron-70b-instruct:free',
+  activeModel: 'openrouter/auto',
   setActiveModel: (activeModel) => set({ activeModel }),
   
   reducedMotion: false,
