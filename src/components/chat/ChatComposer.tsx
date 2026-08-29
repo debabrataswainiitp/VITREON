@@ -8,7 +8,13 @@ import { agentsData } from "./AgentRail";
 import gsap from "gsap";
 import { cn } from "@/lib/utils";
 
-export const AI_MODELS = [
+export interface AIModel {
+  id: string;
+  name: string;
+  isOffline?: boolean;
+}
+
+export const AI_MODELS: AIModel[] = [
   { id: 'openrouter/auto', name: 'Auto (Best Free)' },
   { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning' },
   { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B' },
