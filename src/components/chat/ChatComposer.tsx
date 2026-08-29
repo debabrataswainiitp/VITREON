@@ -12,7 +12,6 @@ export interface AIModel {
   id: string;
   name: string;
   isOffline?: boolean;
-  provider?: 'openrouter' | 'edenai';
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -22,12 +21,7 @@ export const AI_MODELS: AIModel[] = [
   { id: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code' },
   { id: 'minimax/minimax-m3:free', name: 'Minimax M3' },
   { id: 'poolside/laguna-s-2.1:free', name: 'Laguna S 2.1' },
-  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5', isOffline: true },
-
-  // Eden AI Models
-  { id: 'together_ai/Prism-ML/Ternary-Bonsai-27B', name: 'Eden AI: Ternary Bonsai 27B', provider: 'edenai' },
-  { id: 'google/gemma-4-31b-it', name: 'Eden AI: Gemma 4 31B it', provider: 'edenai' },
-  { id: 'google/gemma-4-26b-a4b-it', name: 'Eden AI: Gemma 4 26b a4b it', provider: 'edenai' }
+  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5', isOffline: true }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore, AgentId } from "@/store/useAppStore";
 import { AgentRail, agentsData } from "@/components/chat/AgentRail";
-import { ChatComposer, AI_MODELS } from "@/components/chat/ChatComposer";
+import { ChatComposer } from "@/components/chat/ChatComposer";
 import { ChatBubble, AgentThinking, ErrorBubble, CustomMessage } from "@/components/chat/ChatBubble";
 import { Hexagon, Menu, UserCircle, MessageSquarePlus, Clock, MessageSquare, PanelLeftClose, PanelLeft, Trash2 } from "lucide-react";
 import { easings } from "@/lib/animations";
@@ -102,15 +102,11 @@ export default function HomePage() {
   // where useChat doesn't pick up a replaced transport instance.
   const transport = useMemo(() => new DefaultChatTransport({
     api: '/api/chat',
-    body: () => {
-      const activeMod = AI_MODELS.find(m => m.id === activeModelRef.current);
-      return {
-        agent: activeAgentRef.current,
-        model: activeModelRef.current,
-        provider: activeMod?.provider || 'openrouter',
-        chatId: activeChatIdRef.current,
-      };
-    },
+    body: () => ({
+      agent: activeAgentRef.current,
+      model: activeModelRef.current,
+      chatId: activeChatIdRef.current,
+    }),
     fetch: async (url: RequestInfo | URL, options?: RequestInit) => {
       const res = await fetch(url, options);
       const newChatId = res.headers.get('x-chat-id');

@@ -302,8 +302,7 @@ export async function POST(req: Request) {
       messages,
       agent = 'prism',
       model = 'nvidia/nemotron-3.5-lightning:free',
-      provider = 'openrouter',
-    }: { messages: UIMessage[]; agent?: string; model?: string; provider?: string } = body;
+    }: { messages: UIMessage[]; agent?: string; model?: string } = body;
 
     const chatId: string | undefined = body.chatId || req.headers.get('x-chat-id') || undefined;
 
@@ -312,12 +311,6 @@ export async function POST(req: Request) {
     const openrouter = createOpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY,
-    });
-
-    const edenai = createOpenAI({
-      baseURL: 'https://api.edenai.run/v3',
-      apiKey: process.env.EDENAI_API_KEY,
-      compatibility: 'compatible',
     });
 
     // Extract plain text from the last message — used for DB storage and chat titles
@@ -402,10 +395,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const providerInstance = provider === 'edenai' ? edenai : openrouter;
-
     const result = streamText({
-      model: providerInstance(model),
+      model: openrouter(model),
       system: systemPrompt,
       // Send only the current question — no conversation history — to prevent
       // the model from echoing all prior answers back.
