@@ -22,12 +22,12 @@ export const AI_MODELS: AIModel[] = [
   { id: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code' },
   { id: 'minimax/minimax-m3:free', name: 'Minimax M3' },
   { id: 'poolside/laguna-s-2.1:free', name: 'Laguna S 2.1' },
-  { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B', isOffline: true },
   { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5', isOffline: true },
-  
+
   // Eden AI Models
-  { id: 'openai/gpt-4o-mini', name: 'Eden AI: GPT-4o Mini', provider: 'edenai' },
-  { id: 'google/gemini-1.5-flash', name: 'Eden AI: Gemini 1.5 Flash', provider: 'edenai' }
+  { id: 'together_ai/Prism-ML/Ternary-Bonsai-27B', name: 'Eden AI: Ternary Bonsai 27B', provider: 'edenai' },
+  { id: 'google/gemma-4-31b-it', name: 'Eden AI: Gemma 4 31B it', provider: 'edenai' },
+  { id: 'google/gemma-4-26b-a4b-it', name: 'Eden AI: Gemma 4 26b a4b it', provider: 'edenai' }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
