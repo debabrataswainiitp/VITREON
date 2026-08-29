@@ -317,6 +317,7 @@ export async function POST(req: Request) {
     const edenai = createOpenAI({
       baseURL: 'https://api.edenai.run/v3',
       apiKey: process.env.EDENAI_API_KEY,
+      compatibility: 'compatible',
     });
 
     // Extract plain text from the last message — used for DB storage and chat titles
