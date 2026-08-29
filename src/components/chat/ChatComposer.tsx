@@ -21,6 +21,7 @@ export const AI_MODELS: AIModel[] = [
   { id: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code' },
   { id: 'minimax/minimax-m3:free', name: 'Minimax M3' },
   { id: 'poolside/laguna-s-2.1:free', name: 'Laguna S 2.1' },
+  { id: 'edenai:openai/gpt-4o-mini', name: 'Eden AI (GPT-4o Mini)' },
   { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B', isOffline: true },
   { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5', isOffline: true }
 ];

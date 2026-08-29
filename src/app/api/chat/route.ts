@@ -313,6 +313,11 @@ export async function POST(req: Request) {
       apiKey: process.env.OPENROUTER_API_KEY,
     });
 
+    const edenai = createOpenAI({
+      baseURL: 'https://api.edenai.run/v3',
+      apiKey: process.env.EDENAI_API_KEY,
+    });
+
     // Extract plain text from the last message — used for DB storage and chat titles
     const lastMessage: any = messages[messages.length - 1];
     let messageText = '';
@@ -395,8 +400,12 @@ export async function POST(req: Request) {
       }
     }
 
+    const isEdenAI = model.startsWith('edenai:');
+    const actualModelId = isEdenAI ? model.replace('edenai:', '') : model;
+    const providerInstance = isEdenAI ? edenai : openrouter;
+
     const result = streamText({
-      model: openrouter(model),
+      model: providerInstance(actualModelId),
       system: systemPrompt,
       // Send only the current question — no conversation history — to prevent
       // the model from echoing all prior answers back.
