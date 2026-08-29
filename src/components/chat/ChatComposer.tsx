@@ -17,12 +17,12 @@ export interface AIModel {
 export const AI_MODELS: AIModel[] = [
   { id: 'openrouter/auto', name: 'Auto (Best Free)' },
   { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning' },
-  { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B' },
-  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5' },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b:free', name: 'Nemotron 3 Ultra' },
   { id: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code' },
   { id: 'minimax/minimax-m3:free', name: 'Minimax M3' },
-  { id: 'thinkingmachines/inkling:free', name: 'Inkling' },
-  { id: 'z-ai/glm-5.2:free', name: 'GLM 5.2' }
+  { id: 'poolside/laguna-s-2.1:free', name: 'Laguna S 2.1' },
+  { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B', isOffline: true },
+  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5', isOffline: true }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
