@@ -10,13 +10,13 @@ import { cn } from "@/lib/utils";
 
 export const AI_MODELS = [
   { id: 'openrouter/auto', name: 'Auto (Best Free)' },
-  { id: 'liquid/lfm-40b', name: 'Liquid LFM' },
-  { id: 'meta-llama/llama-3.1-8b-instruct:free', name: 'Llama 3.1 8B' },
-  { id: 'qwen/qwen-2.5-coder-32b-instruct:free', name: 'Qwen 2.5 Coder 32B' },
-  { id: 'microsoft/phi-3-mini-128k-instruct:free', name: 'Phi-3 Mini 128k' },
-  { id: 'mistralai/mistral-7b-instruct:free', name: 'Mistral 7B' },
-  { id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'Nemotron Lightning', isOffline: true },
-  { id: 'google/gemma-2-9b-it:free', name: 'Gemma 4', isOffline: true }
+  { id: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning' },
+  { id: 'google/gemma-4-31b-it:free', name: 'Gemma 4 31B' },
+  { id: 'liquid/lfm-2.5-2.6b:free', name: 'Liquid LFM 2.5' },
+  { id: 'cohere/north-mini-code:free', name: 'Cohere North Mini Code' },
+  { id: 'minimax/minimax-m3:free', name: 'Minimax M3' },
+  { id: 'thinkingmachines/inkling:free', name: 'Inkling' },
+  { id: 'z-ai/glm-5.2:free', name: 'GLM 5.2' }
 ];
 
 export function ChatComposer({ onSend }: { onSend: (msg: string) => void }) {
