@@ -302,7 +302,8 @@ export async function POST(req: Request) {
       messages,
       agent = 'prism',
       model = 'nvidia/nemotron-3.5-lightning:free',
-    }: { messages: UIMessage[]; agent?: string; model?: string } = body;
+      provider = 'openrouter',
+    }: { messages: UIMessage[]; agent?: string; model?: string; provider?: string } = body;
 
     const chatId: string | undefined = body.chatId || req.headers.get('x-chat-id') || undefined;
 
@@ -400,12 +401,10 @@ export async function POST(req: Request) {
       }
     }
 
-    const isEdenAI = model.startsWith('edenai:');
-    const actualModelId = isEdenAI ? model.replace('edenai:', '') : model;
-    const providerInstance = isEdenAI ? edenai : openrouter;
+    const providerInstance = provider === 'edenai' ? edenai : openrouter;
 
     const result = streamText({
-      model: providerInstance(actualModelId),
+      model: providerInstance(model),
       system: systemPrompt,
       // Send only the current question — no conversation history — to prevent
       // the model from echoing all prior answers back.
